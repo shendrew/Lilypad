@@ -1,0 +1,9 @@
+{
+    "name": "Lilypad",
+    "description": "Organize and hide top bar icons",
+    "uuid": "lilypad@shendrew.github.io",
+    "settings-schema": "org.gnome.shell.extensions.lilypad",
+    "shell-version": [
+        "46"
+    ]
+}
