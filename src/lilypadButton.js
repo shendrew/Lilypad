@@ -26,10 +26,19 @@ export default class LilypadButton extends PanelMenu.Button {
         });
         this.add_child(icon);
 
-        let item = new PopupMenu.PopupMenuItem(_("Reorder"));
-        item.connect('activate', this._arrangeIcons.bind(this));
-        this.menu.addMenuItem(item);
+        let reorderButton = new PopupMenu.PopupMenuItem(_("Reorder"));
+        reorderButton.connect('activate', this._arrangeIcons.bind(this));
+        this.menu.addMenuItem(reorderButton);
+
+        let clearButton = new PopupMenu.PopupMenuItem(_("Clear"));
+        clearButton.connect('activate', this._clearOrder.bind(this));
+        this.menu.addMenuItem(clearButton);
         
+        this._roleMap = {};
+    }
+
+    _clearOrder() {
+        this._settings.set_strv('icon-order', []);
     }
 
     _arrangeIcons() {
@@ -39,27 +48,37 @@ export default class LilypadButton extends PanelMenu.Button {
         // reverse rightBox order to match system
         iconOrder.reverse();
 
-        if (JSON.stringify(settingsIconOrder) === JSON.stringify(iconOrder)) {
-            // no icon order updtes
-            return;
+        let hasNewIcon = false;
+        let indexArray = [];
+        for (let i = 0; i < iconOrder.length; i++) {
+            const storedIndex = settingsIconOrder.indexOf(iconOrder[i]);
+            hasNewIcon = hasNewIcon || storedIndex == -1;
+            indexArray.push(storedIndex)
         }
 
-        log("NEED TO REORDER TO", JSON.stringify(settingsIconOrder));
-        log(JSON.stringify(iconOrder));
+        if (!hasNewIcon) {
+            if (JSON.stringify(indexArray) === JSON.stringify(indexArray.toSorted((a, b) => a - b))) {
+                // compare with numerically sorted array
+                return;
+            }
+        }
 
-        iconOrder.forEach(function(icon) {
+
+        log("NEED TO REORDER TO", JSON.stringify(settingsIconOrder));
+
+        iconOrder.forEach((icon) => {
             if (!settingsIconOrder.includes(icon)) {
                 settingsIconOrder.push(icon);
             }
         });
 
-        // new order
-        actorList.forEach(function(actor) {
+        //! new order
+        actorList.forEach((actor) => {
             let container = Main.panel._rightBox;
             container.remove_child(actor);
         });
 
-        settingsIconOrder.forEach(function(actorName) {
+        settingsIconOrder.forEach((actorName) => {
             for (let i=0; i<actorList.length; i++) {
                 let actor = actorList[i].get_first_child();
                 let extensionName = getActorName(actor);
@@ -79,13 +98,13 @@ export default class LilypadButton extends PanelMenu.Button {
         let jsonData = readJSON(`${this._extensionPath}/settings.json`);
 
         // ! GET widget role name
-        // for (const role in Main.panel.statusArea) {
-        //     let container = Main.panel.statusArea[role].container;
-        //     log("role: ", role);
-        //     if (container) {
-        //         log(container.get_child()?._indicator?._uniqueId)
-        //     }
-        // }
+        let containerRole = new Map();
+        for (const role in Main.panel.statusArea) {
+            // roles are keys for the statusArea
+            let container = Main.panel.statusArea[role].container;
+            containerRole.set(container, role);
+            // log("role: ", role, container.get_parent().name);
+        }
         
         let iconOrder = [];
         let actorList = [];
@@ -99,10 +118,11 @@ export default class LilypadButton extends PanelMenu.Button {
             if (!actor.visible) continue;
             if (actorName === "System") continue;
             
-            iconOrder.push(actorName);
             if (extension && actor.is_visible()) {
                 // has a visible container
-                log(actorName, i);
+                // spotify's accessible name could change
+                log(actorName, actor?.accessible_name, containerRole.get(extension), i);
+                iconOrder.push(actorName);
                 actorList.push(extension);
             }
         }

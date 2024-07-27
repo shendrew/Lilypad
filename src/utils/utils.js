@@ -22,7 +22,6 @@ export function saveJSON(filePath, data) {
 export function getActorName(actor) {
     if (actor.accessible_name === "") {
         const indicatorName = actor?._indicator?._uniqueId;
-        log(indicatorName.split('@/'))
         return indicatorName.split('@/')[1];
     }
     

@@ -20,6 +20,7 @@ import Gio from 'gi://Gio';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as Panel from 'resource:///org/gnome/shell/ui/panel.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import LilypadButton from './src/lilypadButton.js';
@@ -45,16 +46,33 @@ export default class Lilypad extends Extension {
             this.openPreferences()
         });
         this._indicator.menu.addMenuItem(settingsItem);
+        
+        // modify default add entrypoint
+        Panel.Panel.prototype._originalAddToStatusArea = Panel.Panel.prototype.addToStatusArea;
+
+        const arrangeIcons = () => {
+            this._indicator._arrangeIcons();
+        }
+
+        Panel.Panel.prototype.addToStatusArea = function(role, indicator, position, box) {
+            this._originalAddToStatusArea(role, indicator, position, box);
+            arrangeIcons();
+        };
 
         Main.panel.addToStatusArea(this.uuid, this._indicator);
+
 
         console.log("Lilypad extension started...")
     }
 
     disable() {
+        Panel.Panel.prototype.addToStatusArea = Panel.Panel.prototype._originalAddToStatusArea;
+        Panel.Panel.prototype._originalAddToStatusArea = undefined;
+
         this._indicator?.destroy();
         this._indicator = null;
 
-        console.log("Lilypad extension stopped...")
+
+        console.log("Lilypad extension stopped.")
     }
 }
