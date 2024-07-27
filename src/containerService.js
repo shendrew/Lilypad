@@ -1,4 +1,3 @@
-import St from 'gi://St';
 import GObject from 'gi://GObject';
 
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -9,44 +8,25 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {getActorName, readJSON, saveJSON} from './utils/utils.js';
 
-export default class LilypadButton extends PanelMenu.Button {
+export default class ContainerService extends GObject.Object {
     static {
         GObject.registerClass({}, this)
     }
 
     _init(args) {
-        super._init(0.5, _('Lilypad'));
+        super._init();
         
         this._settings          = args["Settings"] || null;
         this._extensionPath     = args["Path"] || null;
-        
-        let icon = new St.Icon({
-            icon_name: 'camera-shutter-symbolic',
-            style_class: 'system-status-icon',
-        });
-        this.add_child(icon);
-
-        let reorderButton = new PopupMenu.PopupMenuItem(_("Reorder"));
-        reorderButton.connect('activate', this._arrangeIcons.bind(this));
-        this.menu.addMenuItem(reorderButton);
-
-        let clearButton = new PopupMenu.PopupMenuItem(_("Clear"));
-        clearButton.connect('activate', this._clearOrder.bind(this));
-        this.menu.addMenuItem(clearButton);
-        
-        this._roleMap = {};
     }
 
-    _clearOrder() {
+    clearOrder() {
         this._settings.set_strv('icon-order', []);
     }
 
-    _arrangeIcons() {
+    arrange() {
         let settingsIconOrder = this._settings.get_strv('icon-order');
-        const {iconOrder, actorList} = this._getIconOrder();
-
-        // reverse rightBox order to match system
-        iconOrder.reverse();
+        const {iconOrder, actorList} = this.getOrder();
 
         let hasNewIcon = false;
         let indexArray = [];
@@ -78,22 +58,34 @@ export default class LilypadButton extends PanelMenu.Button {
             container.remove_child(actor);
         });
 
-        settingsIconOrder.forEach((actorName) => {
+        for (let ind=0; ind<settingsIconOrder.length; ind++) {
+            const actorName = settingsIconOrder[ind];
             for (let i=0; i<actorList.length; i++) {
                 let actor = actorList[i].get_first_child();
                 let extensionName = getActorName(actor);
 
                 if (actorName == extensionName) {
-                    Main.panel._rightBox.insert_child_at_index(actorList[i], 0);
+                    Main.panel._rightBox.insert_child_at_index(actorList[i], ind);
                 }
             }
-        });
+        }
+
+        // settingsIconOrder.forEach((actorName) => {
+        //     for (let i=0; i<actorList.length; i++) {
+        //         let actor = actorList[i].get_first_child();
+        //         let extensionName = getActorName(actor);
+
+        //         if (actorName == extensionName) {
+        //             Main.panel._rightBox.insert_child_at_index(actorList[i], 0);
+        //         }
+        //     }
+        // });
 
         this._settings.set_strv('icon-order', settingsIconOrder);
     }
 
     // Get current order of icons in the top bar
-    _getIconOrder() {
+    getOrder() {
 
         let jsonData = readJSON(`${this._extensionPath}/settings.json`);
 
