@@ -18,11 +18,21 @@ export function saveJSON(filePath, data) {
     GLib.file_set_contents(filePath, jsonData);
 }
 
+export function getRoleName(role) {
+    let roleName;
+    if (role.includes("appindicator")) {
+        roleName = role.split('@/');
+        role = roleName[roleName.length - 1];
+    }
+    
+    roleName = role.split('/');         // for parsing ayatana appindicators
+    return roleName[roleName.length - 1].split('@')[0];
+}
 
-export function getActorName(actor) {
+export function getDisplayName(actor) {
     if (actor.accessible_name === "") {
-        const indicatorName = actor?._indicator?._uniqueId;
-        return indicatorName.split('@/')[1];
+        const indicatorName = actor?._indicator?._uniqueId.split('@/');
+        return indicatorName[indicatorName.length - 1];
     }
     
     // native GTK widget

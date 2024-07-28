@@ -6,7 +6,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import {getActorName, readJSON, saveJSON} from './utils/utils.js';
+import {getRoleName, getDisplayName, readJSON, saveJSON} from './utils/utils.js';
 
 export default class ContainerService extends GObject.Object {
     static {
@@ -20,20 +20,22 @@ export default class ContainerService extends GObject.Object {
         this._extensionPath     = args["Path"] || null;
     }
 
+    _containerName;
+
     clearOrder() {
         this._settings.set_strv('icon-order', []);
     }
 
     arrange() {
         let settingsIconOrder = this._settings.get_strv('icon-order');
-        const {iconOrder, actorList} = this.getOrder();
+        const roleOrder = this.getOrder();
 
         let hasNewIcon = false;
         let indexArray = [];
-        for (let i = 0; i < iconOrder.length; i++) {
-            const storedIndex = settingsIconOrder.indexOf(iconOrder[i]);
+        for (let role of roleOrder) {
+            const storedIndex = settingsIconOrder.indexOf(getRoleName(role));
             hasNewIcon = hasNewIcon || storedIndex == -1;
-            indexArray.push(storedIndex)
+            indexArray.push(storedIndex);
         }
 
         if (!hasNewIcon) {
@@ -45,41 +47,31 @@ export default class ContainerService extends GObject.Object {
 
 
         log("NEED TO REORDER TO", JSON.stringify(settingsIconOrder));
-
-        iconOrder.forEach((icon) => {
-            if (!settingsIconOrder.includes(icon)) {
-                settingsIconOrder.push(icon);
+        roleOrder.forEach((role) => {
+            // insert new roles to arrange
+            const roleName = getRoleName(role);
+            if (!settingsIconOrder.includes(roleName)) {
+                settingsIconOrder.push(roleName);
             }
-        });
-
-        //! new order
-        actorList.forEach((actor) => {
-            let container = Main.panel._rightBox;
-            container.remove_child(actor);
+            
+            // remove container from panel
+            const container = Main.panel.statusArea[role].container;
+            const boxContainer = container.get_parent();
+            boxContainer.remove_child(container);
         });
 
         for (let ind=0; ind<settingsIconOrder.length; ind++) {
-            const actorName = settingsIconOrder[ind];
-            for (let i=0; i<actorList.length; i++) {
-                let actor = actorList[i].get_first_child();
-                let extensionName = getActorName(actor);
+            const settingsRole = settingsIconOrder[ind];
+            for (let role of roleOrder) {
+                const roleName = getRoleName(role);
+                const container = Main.panel.statusArea[role].container;
+                // const container = containerHolder[role];
 
-                if (actorName == extensionName) {
-                    Main.panel._rightBox.insert_child_at_index(actorList[i], ind);
+                if (settingsRole == roleName) {
+                    Main.panel._rightBox.insert_child_at_index(container, ind);
                 }
             }
         }
-
-        // settingsIconOrder.forEach((actorName) => {
-        //     for (let i=0; i<actorList.length; i++) {
-        //         let actor = actorList[i].get_first_child();
-        //         let extensionName = getActorName(actor);
-
-        //         if (actorName == extensionName) {
-        //             Main.panel._rightBox.insert_child_at_index(actorList[i], 0);
-        //         }
-        //     }
-        // });
 
         this._settings.set_strv('icon-order', settingsIconOrder);
     }
@@ -90,43 +82,36 @@ export default class ContainerService extends GObject.Object {
         let jsonData = readJSON(`${this._extensionPath}/settings.json`);
 
         // ! GET widget role name
-        let containerRole = new Map();
+        this._containerName = new Map();
         for (const role in Main.panel.statusArea) {
             // roles are keys for the statusArea
             let container = Main.panel.statusArea[role].container;
-            containerRole.set(container, role);
-            // log("role: ", role, container.get_parent().name);
+            this._containerName.set(container, role);
         }
         
-        let iconOrder = [];
-        let actorList = [];
+        let roleOrder = [];
         let children = Main.panel._rightBox.get_children();
         for (let i = 0; i < children.length; i++) {
-            let extension = children[i];
-            let actor = extension.get_first_child();
-            let actorName = getActorName(actor);
+            let container = children[i];
+            let actor = container.get_first_child();
+            let actorName = getDisplayName(actor);
 
             // conditions to exclude
             if (!actor.visible) continue;
             if (actorName === "System") continue;
             
-            if (extension && actor.is_visible()) {
+            if (container && actor.is_visible()) {
                 // has a visible container
-                // spotify's accessible name could change
-                log(actorName, actor?.accessible_name, containerRole.get(extension), i);
-                iconOrder.push(actorName);
-                actorList.push(extension);
+                // spotify's accessible name could change, so push the raw role first
+                roleOrder.push(this._containerName.get(container));
             }
         }
 
-        log("detected: ",iconOrder)
+        log("detected: ",roleOrder)
 
         // save to settings
-        jsonData.iconOrder = iconOrder;
+        jsonData.roleOrder = roleOrder;
         
-        return {
-            iconOrder: iconOrder,
-            actorList: actorList,
-        };
+        return roleOrder;
     }
 }
