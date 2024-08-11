@@ -3,8 +3,6 @@ import GObject from 'gi://GObject';
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {getRoleName, getDisplayName, readJSON, saveJSON} from './utils/utils.js';
 
@@ -18,9 +16,11 @@ export default class ContainerService extends GObject.Object {
         
         this._settings          = args["Settings"] || null;
         this._extensionPath     = args["Path"] || null;
-    }
 
-    _containerName;
+        this._settings.connect("changed::icon-order", this.arrange.bind(this));
+
+        this._containerName;
+    }
 
     clearOrder() {
         this._settings.set_strv('icon-order', []);
@@ -87,6 +87,7 @@ export default class ContainerService extends GObject.Object {
             // roles are keys for the statusArea
             let container = Main.panel.statusArea[role].container;
             this._containerName.set(container, role);
+            // log(role, container.get_parent().name);
         }
         
         let roleOrder = [];
@@ -101,16 +102,12 @@ export default class ContainerService extends GObject.Object {
             if (actorName === "System") continue;
             
             if (container && actor.is_visible()) {
-                // has a visible container
-                // spotify's accessible name could change, so push the raw role first
+                // accessible name could change, so push the raw role first
                 roleOrder.push(this._containerName.get(container));
             }
         }
 
         log("detected: ",roleOrder)
-
-        // save to settings
-        jsonData.roleOrder = roleOrder;
         
         return roleOrder;
     }

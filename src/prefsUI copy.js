@@ -166,9 +166,37 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
         this._signalHandlers.push(dropTarget1.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this.rightBoxList)));
         this._signalHandlers.push(dropTarget2.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this.lilypadList)));
+
+        
+    
+        // Drop Handling
+        // this._signalHandlers.push(dropTarget.connect("drop", (_drop, value, _x, y) => {
+        //     const targetRow = rightBoxList.get_row_at_y(y);
+        //     const targetIndex = targetRow.get_index();
+            
+        //     // If value or the target row is null, do not accept the drop
+        //     if (!value || !targetRow) {
+        //         return false;
+        //     }
+
+            
+        //     rightBoxList.remove(value);
+        //     rightBoxList.insert(value, targetIndex);
+        //     targetRow.set_state_flags(Gtk.StateFlags.NORMAL, true);
+            
+        //     let iconOrder = [];
+        //     for (const row of rightBoxList) {
+        //         iconOrder.push(row.title);
+        //     }
+            
+        //     this._settings.set_strv("icon-order", iconOrder);
+        //     // If everything is successful, return true to accept the drop
+        //     return true;
+        // }));
     }
 
     _onTargetDropped(_drop, value, _x, y, listbox) {
+        console.log(listbox);
         const targetRow = listbox.get_row_at_y(y);
         const targetIndex = targetRow.get_index();
         
@@ -177,31 +205,17 @@ export default class PrefsUI extends Adw.PreferencesPage {
             return false;
         }
 
-        for (const row of this.rightBoxList) {
-            if (row === value) {
-                this.rightBoxList.remove(value);
-                listbox.insert(value, targetIndex);
-                break;
-            }
-        }
-
-        for (const row of this.lilypadList) {
-            if (row === value) {
-                this.lilypadList.remove(value);
-                listbox.insert(value, targetIndex);
-                break;
-            }
-        }
-
-
+        
+        // listbox.remove(value);
+        listbox.insert(value, targetIndex);
         targetRow.set_state_flags(Gtk.StateFlags.NORMAL, true);
         
-        let iconOrder = [];
-        for (const row of listbox) {
-            iconOrder.push(row.title);listbox
-        }
+        // let iconOrder = [];
+        // for (const row of listbox) {
+        //     iconOrder.push(row.title);
+        // }
         
-        this._settings.set_strv("icon-order", iconOrder);
+        // this._settings.set_strv("icon-order", iconOrder);
 
         // If everything is successful, return true to accept the drop
         return true;
