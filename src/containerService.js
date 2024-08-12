@@ -17,17 +17,18 @@ export default class ContainerService extends GObject.Object {
         this._settings          = args["Settings"] || null;
         this._extensionPath     = args["Path"] || null;
 
-        this._settings.connect("changed::icon-order", this.arrange.bind(this));
+        this._settings.connect("changed::rightbox-order", this.arrange.bind(this));
 
         this._containerName;
     }
 
     clearOrder() {
-        this._settings.set_strv('icon-order', []);
+        this._settings.set_strv('rightbox-order', []);
+        this._settings.set_strv('lilypad-order', []);
     }
 
     arrange() {
-        let settingsIconOrder = this._settings.get_strv('icon-order');
+        let settingsIconOrder = this._settings.get_strv('rightbox-order');
         const roleOrder = this.getOrder();
 
         let hasNewIcon = false;
@@ -73,7 +74,7 @@ export default class ContainerService extends GObject.Object {
             }
         }
 
-        this._settings.set_strv('icon-order', settingsIconOrder);
+        this._settings.set_strv('rightbox-order', settingsIconOrder);
     }
 
     // Get current order of icons in the top bar

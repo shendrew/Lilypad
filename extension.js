@@ -38,6 +38,7 @@ export default class Lilypad extends Extension {
             Settings: this.getSettings(),
             Path: this.path,
         });
+        this._signalHandlers = [];
         this._indicator = this._initIndicator();
         
         //* modify default addContainer entrypoint
@@ -61,6 +62,8 @@ export default class Lilypad extends Extension {
         Panel.Panel.prototype.addToStatusArea = Panel.Panel.prototype._originalAddToStatusArea;
         Panel.Panel.prototype._originalAddToStatusArea = undefined;
 
+        this._signalHandlers.forEach(handler => handler.object.disconnect(handler.signal));
+
         this._indicator?.destroy();
         this._indicator = null;
 
@@ -77,16 +80,23 @@ export default class Lilypad extends Extension {
         indicator.add_child(icon);
 
         let reorderButton = new PopupMenu.PopupMenuItem(_("Reorder"));
-        reorderButton.connect('activate', this._containerService.arrange.bind(this._containerService));
+        this._signalHandlers.push({
+            object: reorderButton,
+            signal: reorderButton.connect('activate', this._containerService.arrange.bind(this._containerService))
+        });
         indicator.menu.addMenuItem(reorderButton);
 
         let clearButton = new PopupMenu.PopupMenuItem(_("Clear"));
-        clearButton.connect('activate', this._containerService.clearOrder.bind(this._containerService));
+        this._signalHandlers.push({
+            object: clearButton,
+            signal: clearButton.connect('activate', this._containerService.clearOrder.bind(this._containerService))
+        });
         indicator.menu.addMenuItem(clearButton);
 
         let settingsItem = new PopupMenu.PopupMenuItem(_('Settings'));
-        settingsItem.connect('activate', () => {
-            this.openPreferences()
+        this._signalHandlers.push({
+            object: settingsItem,
+            signal: settingsItem.connect('activate', () => this.openPreferences())
         });
         indicator.menu.addMenuItem(settingsItem);
         

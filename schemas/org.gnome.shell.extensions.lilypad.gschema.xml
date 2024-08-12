@@ -8,21 +8,20 @@
 
     <schema id="org.gnome.shell.extensions.lilypad" path="/org/gnome/shell/extensions/lilypad/">
 
-        <key type="s" name="test">
-            <default>'bruh'</default>
+        <key type="as" name="rightbox-order">
+            <default>['lilypad']</default>
 
+            <summary>Order of icons in rightbox</summary>
         </key>
 
-        <key type="as" name="icon-order">
-            <default>['Lilypad']</default>
-
-            <summary>WHAT IS THIS</summary>
-            <description>idk what to put</description>
+        <key type="as" name="lilypad-order">
+            <default>[]</default>
+            <summary>Icons in collapsible Lilypad menu</summary>
         </key>
 
-        <key name="my-position" enum="org.gnome.shell.extensions.lilypad.enum-test">
+        <!-- <key name="my-position" enum="org.gnome.shell.extensions.lilypad.enum-test">
             <default>'TOP'</default>
-        </key>
+        </key> -->
     
     </schema>
 </schemalist>

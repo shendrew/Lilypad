@@ -4,16 +4,16 @@
   <template class="PrefsUI" parent="AdwPreferencesPage">
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">Drag and Drop</property>
-        <property name="description">A drag and drop interface</property>
+        <property name="title">Topbar Order</property>
+        <property name="description">Order of icons in the right side of top bar</property>
         <child>
           <object class="GtkBox">
             <property name="orientation">1</property>
             <child>
               <object class="AdwClamp">
-                <property name="maximum-size">750</property>
+                <property name="maximum-size">600</property>
                 <child>
-                  <object class="GtkListBox" id="rightBox-order">
+                  <object class="GtkListBox" id="rightbox-order">
                     <style>
                       <class name="boxed-list"/>
                     </style>
@@ -22,10 +22,21 @@
                 </child>
               </object>
             </child>
+          </object>
+        </child>
+      </object>
+    </child>
 
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title">Lilypad Group</property>
+        <property name="description">Icons in collapsible menu</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">1</property>
             <child>
               <object class="AdwClamp">
-                <property name="maximum-size">400</property>
+                <property name="maximum-size">600</property>
                 <child>
                   <object class="GtkListBox" id="lilypad-order">
                     <style>
@@ -33,43 +44,18 @@
                     </style>
                     <child>
                       <object class="AdwActionRow">
-                        <property name="title" translatable="true">Row 4</property>
+                        <property name="title" translatable="true">-- lilypad button --</property>
+                        <property name="selectable" translatable="true">false</property>
                         <child type="prefix">
                           <object class="GtkImage">
                             <style>
                               <class name="dim-label"/>
                             </style>
-                            <property name="icon-name">list-drag-handle-symbolic</property>
                           </object>
                         </child>
                       </object>
                     </child>
-                    <child>
-                      <object class="AdwActionRow">
-                        <property name="title" translatable="true">Row 5</property>
-                        <child type="prefix">
-                          <object class="GtkImage">
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                            <property name="icon-name">list-drag-handle-symbolic</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwActionRow">
-                        <property name="title" translatable="true">Row 6</property>
-                        <child type="prefix">
-                          <object class="GtkImage">
-                            <style>
-                              <class name="dim-label"/>
-                            </style>
-                            <property name="icon-name">list-drag-handle-symbolic</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
+                    
                   </object>
                 </child>
               </object>
@@ -83,6 +69,7 @@
               </object>
             </child>
           </object>
+
         </child>
       </object>
     </child>

@@ -18,7 +18,7 @@ export default class LilypadPreferences extends ExtensionPreferences {
     }
 
     fillPreferencesWindow(window) {
-        window.set_default_size(850, 900);
+        window.set_default_size(750, 900);
         
         let page = new PrefsUI({
             title: _('General'),
