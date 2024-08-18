@@ -17,78 +17,144 @@ export default class ContainerService extends GObject.Object {
         this._settings          = args["Settings"] || null;
         this._extensionPath     = args["Path"] || null;
 
-        this._settings.connect("changed::rightbox-order", this.arrange.bind(this));
+        this._settings.connect("changed::reorder", this.arrange.bind(this));
 
         this._containerName;
     }
 
     clearOrder() {
-        this._settings.set_strv('rightbox-order', []);
         this._settings.set_strv('lilypad-order', []);
+        this._settings.set_strv('rightbox-order', []);
+    }
+
+    toggleIcons() {
+        let lilypadOrder = this._settings.get_strv('lilypad-order');
+        let showIcons    = this._settings.get_boolean('show-icons');
+        
+        // toggle showIcons
+        showIcons ^= 1;
+        this._settings.set_boolean('show-icons', showIcons);
+
+        const roleOrder = this.getOrder();
+        for (let role of roleOrder) {
+            const roleName = getRoleName(role);
+            if (lilypadOrder.includes(roleName)) {
+                const container = Main.panel.statusArea[role].container;
+                
+                if (showIcons) {
+                    container.show();
+                } else {
+                    container.hide();
+                }
+            }
+        }
+
     }
 
     arrange() {
-        let settingsIconOrder = this._settings.get_strv('rightbox-order');
-        const roleOrder = this.getOrder();
+        let rightBoxOrder = this._settings.get_strv('rightbox-order');
+        let lilypadOrder  = this._settings.get_strv('lilypad-order');
+        let showIcons     = this._settings.get_strv('show-icons');
+        const roleOrder   = this.getOrder();
+
+        log(rightBoxOrder)
+        log(lilypadOrder)
 
         let hasNewIcon = false;
-        let indexArray = [];
+        let iconOrder = [];
+        let iconInd = 0;
+
+        let buttonIndex = rightBoxOrder.indexOf("lilypad");
         for (let role of roleOrder) {
-            const storedIndex = settingsIconOrder.indexOf(getRoleName(role));
-            hasNewIcon = hasNewIcon || storedIndex == -1;
-            indexArray.push(storedIndex);
+            const rightBoxIndex = rightBoxOrder.indexOf(getRoleName(role));
+            const lilypadIndex = lilypadOrder.indexOf(getRoleName(role));
+            hasNewIcon = hasNewIcon || (rightBoxIndex === -1 && lilypadIndex === -1);
+
+            if (lilypadIndex !== -1) {
+                iconOrder.push(lilypadIndex + buttonIndex);
+            }
+            else {
+                if (rightBoxIndex >= buttonIndex) {
+                    iconOrder.push(rightBoxIndex + lilypadOrder.length);
+                } else {
+                    iconOrder.push(rightBoxIndex);
+                }
+
+                iconInd++;
+            }
         }
 
         if (!hasNewIcon) {
-            if (JSON.stringify(indexArray) === JSON.stringify(indexArray.toSorted((a, b) => a - b))) {
+            if (JSON.stringify(iconOrder) === JSON.stringify(iconOrder.toSorted((a, b) => a - b))) {
                 // compare with numerically sorted array
                 return;
             }
         }
 
 
-        log("NEED TO REORDER TO", JSON.stringify(settingsIconOrder));
+        log("NEED TO REORDER TO", JSON.stringify(rightBoxOrder));
         roleOrder.forEach((role) => {
             // insert new roles to arrange
             const roleName = getRoleName(role);
-            if (!settingsIconOrder.includes(roleName)) {
-                settingsIconOrder.push(roleName);
+            if (!rightBoxOrder.includes(roleName) && !lilypadOrder.includes(roleName)) {
+                rightBoxOrder.push(roleName);
             }
             
-            // remove container from panel
+            // remove role container from panel
             const container = Main.panel.statusArea[role].container;
             const boxContainer = container.get_parent();
             boxContainer.remove_child(container);
         });
 
-        for (let ind=0; ind<settingsIconOrder.length; ind++) {
-            const settingsRole = settingsIconOrder[ind];
+        let ind=0;
+        for (let i=0; i<rightBoxOrder.length; i++) {
+            const settingsRole = rightBoxOrder[i];
             for (let role of roleOrder) {
                 const roleName = getRoleName(role);
-                const container = Main.panel.statusArea[role].container;
-                // const container = containerHolder[role];
 
-                if (settingsRole == roleName) {
+                if (settingsRole === roleName) {
+                    if (roleName === "lilypad") {
+                        // add all grouped icons
+                        for (let j=0; j<lilypadOrder.length; j++) {
+                            const targetRole = lilypadOrder[j];
+                            for (let groupedRole of roleOrder) {
+                                const groupedRoleName = getRoleName(groupedRole);
+                                
+                                if (targetRole === groupedRoleName) {
+                                    log(groupedRoleName)
+                                    const groupedContainer = Main.panel.statusArea[groupedRole].container;
+                                    Main.panel._rightBox.insert_child_at_index(groupedContainer, ind);
+
+                                    if (showIcons) {
+                                        groupedContainer.show();
+                                    } else {
+                                        groupedContainer.hide();
+                                    }
+                                    ind++;
+
+                                }
+                            }
+                        }
+                    }
+                    
+                    const container = Main.panel.statusArea[role].container;
                     Main.panel._rightBox.insert_child_at_index(container, ind);
+                    ind++;
                 }
             }
         }
 
-        this._settings.set_strv('rightbox-order', settingsIconOrder);
+        this._settings.set_strv('rightbox-order', rightBoxOrder);
     }
 
     // Get current order of icons in the top bar
     getOrder() {
-
-        let jsonData = readJSON(`${this._extensionPath}/settings.json`);
-
-        // ! GET widget role name
+        // GET widget role name
         this._containerName = new Map();
         for (const role in Main.panel.statusArea) {
             // roles are keys for the statusArea
             let container = Main.panel.statusArea[role].container;
             this._containerName.set(container, role);
-            // log(role, container.get_parent().name);
         }
         
         let roleOrder = [];

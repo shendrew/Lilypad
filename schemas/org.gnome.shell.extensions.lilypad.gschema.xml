@@ -19,6 +19,14 @@
             <summary>Icons in collapsible Lilypad menu</summary>
         </key>
 
+        <key type="b" name="reorder">
+            <default>false</default>
+        </key>
+
+        <key type="b" name="show-icons">
+            <default>true</default>
+        </key>
+
         <!-- <key name="my-position" enum="org.gnome.shell.extensions.lilypad.enum-test">
             <default>'TOP'</default>
         </key> -->

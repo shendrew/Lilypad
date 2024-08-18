@@ -29,7 +29,7 @@
 
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">Lilypad Group</property>
+        <property name="title">Collapsible Group</property>
         <property name="description">Icons in collapsible menu</property>
         <child>
           <object class="GtkBox">
@@ -42,6 +42,7 @@
                     <style>
                       <class name="boxed-list"/>
                     </style>
+                    
                     <child>
                       <object class="AdwActionRow">
                         <property name="title" translatable="true">-- lilypad button --</property>
@@ -61,17 +62,10 @@
               </object>
             </child>
 
-            <child>
-              <object class="GtkLinkButton">
-                <property name="label" translatable="true">API Reference</property>
-                <property name="uri">https://docs.gtk.org/gtk4/drag-and-drop.html</property>
-                <property name="margin-top">24</property>
-              </object>
-            </child>
           </object>
-
         </child>
       </object>
     </child>
+
   </template>
 </interface>

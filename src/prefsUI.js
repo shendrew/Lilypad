@@ -31,6 +31,10 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._initDragMenu();
     }
     
+    /*
+     * based on Workbench v46.1 Drag and Drop template
+     * used under the terms of GPL-3.0
+     */
     _addRow(dragBox, rowName, index) {
         let row = new Adw.ActionRow({ title: rowName, selectable: false});
         row.add_prefix(
@@ -130,11 +134,10 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._rightBoxList.add_controller(rightBoxTarget);
         this._lilypadList.add_controller(lilypadTarget);    
         
-        // set up row cursor interaction
+        // add rows to drag boxes
         for (const iconName of rightBoxOrder) {
             this._addRow(this._rightBoxList, iconName, -1);
         }
-
         let lilypadIndex = 0;
         for (const iconName of lilypadOrder) {
             this._addRow(this._lilypadList, iconName, lilypadIndex);
@@ -151,6 +154,10 @@ export default class PrefsUI extends Adw.PreferencesPage {
         
         // If value or the target row is null, do not accept the drop
         if (!value || !targetRow) {
+            return false;
+        }
+
+        if (value.title === "lilypad" && listbox === this._lilypadList) {
             return false;
         }
 
@@ -179,13 +186,16 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
         let lilypadOrder = [];
         for (const row of this._lilypadList) {
-            if (row.title != "-- lilypad button --") {
+            if (row.title !== "-- lilypad button --") {
                 lilypadOrder.push(row.title);
             }
         }
         
-        this._settings.set_strv("rightbox-order", rightBoxOrder);
         this._settings.set_strv("lilypad-order", lilypadOrder);
+        this._settings.set_strv("rightbox-order", rightBoxOrder);
+        
+        const reorder_state = this._settings.get_boolean("reorder");
+        this._settings.set_boolean("reorder", reorder_state^1);
 
         return true;
     }

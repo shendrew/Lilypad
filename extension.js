@@ -17,6 +17,7 @@
  */
 import Gio from 'gi://Gio';
 import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -70,8 +71,10 @@ export default class Lilypad extends Extension {
         console.log("Lilypad extension stopped.")
     }
 
+    
+
     _initIndicator() {
-        let indicator = new PanelMenu.Button(0.5, _('Lilypad'));
+        let indicator = new PanelMenu.Button(0.5, _('Lilypad'), false);
 
         let icon = new St.Icon({
             icon_name: 'camera-shutter-symbolic',
@@ -80,25 +83,25 @@ export default class Lilypad extends Extension {
         indicator.add_child(icon);
 
         let reorderButton = new PopupMenu.PopupMenuItem(_("Reorder"));
-        this._signalHandlers.push({
-            object: reorderButton,
-            signal: reorderButton.connect('activate', this._containerService.arrange.bind(this._containerService))
-        });
+        reorderButton.connect('activate', this._containerService.arrange.bind(this._containerService));
         indicator.menu.addMenuItem(reorderButton);
 
         let clearButton = new PopupMenu.PopupMenuItem(_("Clear"));
-        this._signalHandlers.push({
-            object: clearButton,
-            signal: clearButton.connect('activate', this._containerService.clearOrder.bind(this._containerService))
-        });
+        clearButton.connect('activate', this._containerService.clearOrder.bind(this._containerService));
         indicator.menu.addMenuItem(clearButton);
 
         let settingsItem = new PopupMenu.PopupMenuItem(_('Settings'));
-        this._signalHandlers.push({
-            object: settingsItem,
-            signal: settingsItem.connect('activate', () => this.openPreferences())
-        });
+        settingsItem.connect('activate', () => this.openPreferences());
         indicator.menu.addMenuItem(settingsItem);
+
+        indicator.connect('button-press-event', (actor, event) => {
+            switch (event.get_button()) {
+                // do not show menu
+                case Clutter.BUTTON_PRIMARY: indicator.menu.toggle(); this._containerService.toggleIcons(); break;
+                case Clutter.BUTTON_MIDDLE: indicator.menu.toggle(); break;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
         
         return indicator;
     }

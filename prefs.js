@@ -26,11 +26,5 @@ export default class LilypadPreferences extends ExtensionPreferences {
             Settings: this.getSettings(),
         });
         window.add(page);
-        
-        // let page2 = new PrefsUI({
-        //     title: _('test'),
-        //     icon_name: 'applications-other-symbolic',
-        // });
-        // window.add(page2);
     }
 }
