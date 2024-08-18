@@ -35,8 +35,10 @@ export default class Lilypad extends Extension {
     }
 
     enable() {
+        this._settings = this.getSettings();
+
         this._containerService = new ContainerService({
-            Settings: this.getSettings(),
+            Settings: this._settings,
             Path: this.path,
         });
         this._signalHandlers = [];
@@ -97,8 +99,17 @@ export default class Lilypad extends Extension {
         indicator.connect('button-press-event', (actor, event) => {
             switch (event.get_button()) {
                 // do not show menu
-                case Clutter.BUTTON_PRIMARY: indicator.menu.toggle(); this._containerService.toggleIcons(); break;
-                case Clutter.BUTTON_MIDDLE: indicator.menu.toggle(); break;
+                case Clutter.BUTTON_PRIMARY:
+                    if (this._settings.get_strv("lilypad-order").length === 0) {
+                        break;
+                    }
+                    
+                    indicator.menu.toggle();
+                    this._containerService.toggleIcons();
+                    break;
+                case Clutter.BUTTON_MIDDLE:
+                    indicator.menu.toggle();
+                    break;
             }
             return Clutter.EVENT_PROPAGATE;
         });
