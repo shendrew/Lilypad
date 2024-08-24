@@ -18,12 +18,8 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
     _init(params = {}) {
         this._settings = params?.Settings;
-
-
         let {Settings, ...args} = params;
         super._init(args);
-
-        this._signalHandlers = [];
         
         this._rightBoxList = this._rightbox_order;
         this._lilypadList  = this._lilypad_order;
@@ -56,55 +52,43 @@ export default class PrefsUI extends Adw.PreferencesPage {
         row.add_controller(dropController);
 
         // Drag handling
-        this._signalHandlers.push({
-            object: dragSource,
-            signal: dragSource.connect("prepare", (_source, x, y) => {
-                dragX = x;
-                dragY = y;
-    
-                const value = new GObject.Value();
-                value.init(Gtk.ListBoxRow);
-                value.set_object(row);
-    
-                return Gdk.ContentProvider.new_for_value(value);
-            })
+        dragSource.connect("prepare", (_source, x, y) => {
+            dragX = x;
+            dragY = y;
+
+            const value = new GObject.Value();
+            value.init(Gtk.ListBoxRow);
+            value.set_object(row);
+
+            return Gdk.ContentProvider.new_for_value(value);
         });
 
-        this._signalHandlers.push({
-            object: dragSource,
-            signal: dragSource.connect("drag-begin", (_source, drag) => {
-                const dragWidget = new Gtk.ListBox();
-    
-                dragWidget.set_size_request(row.get_width(), row.get_height());
-                dragWidget.add_css_class("boxed-list");
-    
-                const dragRow = new Adw.ActionRow({ title: row.title });
-                dragRow.add_prefix(
-                    new Gtk.Image({
-                        icon_name: "list-drag-handle-symbolic",
-                        css_classes: ["dim-label"],
-                    }),
-                );
-    
-                dragWidget.append(dragRow);
-                dragWidget.drag_highlight_row(dragRow);
-                
-                const icon = Gtk.DragIcon.get_for_drag(drag);
-                icon.child = dragWidget;
-                
-                drag.set_hotspot(dragX, dragY);
-            })
+        dragSource.connect("drag-begin", (_source, drag) => {
+            const dragWidget = new Gtk.ListBox();
+
+            dragWidget.set_size_request(row.get_width(), row.get_height());
+            dragWidget.add_css_class("boxed-list");
+
+            const dragRow = new Adw.ActionRow({ title: row.title });
+            dragRow.add_prefix(
+                new Gtk.Image({
+                    icon_name: "list-drag-handle-symbolic",
+                    css_classes: ["dim-label"],
+                }),
+            );
+
+            dragWidget.append(dragRow);
+            dragWidget.drag_highlight_row(dragRow);
+            
+            const icon = Gtk.DragIcon.get_for_drag(drag);
+            icon.child = dragWidget;
+            
+            drag.set_hotspot(dragX, dragY);
         });
-        
+
         // Update row visuals during drag
-        this._signalHandlers.push({
-            object: dropController,
-            signal: dropController.connect("enter", () => dragBox.drag_highlight_row(row) )
-        });
-        this._signalHandlers.push({
-            object: dropController,
-            signal: dropController.connect("leave", () => dragBox.drag_unhighlight_row() )
-        });
+        dropController.connect("enter", () => dragBox.drag_highlight_row(row) );
+        dropController.connect("leave", () => dragBox.drag_unhighlight_row() );
 
         dragBox.insert(row, index);
     }
@@ -118,14 +102,8 @@ export default class PrefsUI extends Adw.PreferencesPage {
             const dropController = new Gtk.DropControllerMotion();
             row.add_controller(dropController);
 
-            this._signalHandlers.push({
-                object: dropController,
-                signal: dropController.connect("enter", () => this._lilypadList.drag_highlight_row(row) )
-            });
-            this._signalHandlers.push({
-                object: dropController,
-                signal: dropController.connect("leave", () => this._lilypadList.drag_unhighlight_row() )
-            });
+            dropController.connect("enter", () => this._lilypadList.drag_highlight_row(row) );
+            dropController.connect("leave", () => this._lilypadList.drag_unhighlight_row() );
         }
 
         const rightBoxTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
@@ -144,8 +122,8 @@ export default class PrefsUI extends Adw.PreferencesPage {
             lilypadIndex++;
         }
 
-        this._signalHandlers.push(rightBoxTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._rightBoxList)));
-        this._signalHandlers.push(lilypadTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._lilypadList)));
+        rightBoxTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._rightBoxList));
+        lilypadTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._lilypadList));
     }
 
     _onTargetDropped(_drop, value, _x, y, listbox) {
@@ -198,12 +176,5 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._settings.set_boolean("reorder", reorder_state^1);
 
         return true;
-    }
-
-
-    _destroy() {
-        // Disconnect all signal handlers
-        this._signalHandlers.forEach(handler => handler.object.disconnect(handler.signal));
-        super._destroy();
     }
 }

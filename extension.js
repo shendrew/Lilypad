@@ -41,7 +41,19 @@ export default class Lilypad extends Extension {
             Settings: this._settings,
             Path: this.path,
         });
-        this._signalHandlers = [];
+        
+        // create icons
+        this._closedIcon = new St.Icon({
+            gicon: Gio.icon_new_for_string(`${this.path}/icons/closed_icon.svg`),
+            style_class: 'system-status-icon',
+            icon_size: 16,
+        });
+        this._openIcon = new St.Icon({
+            gicon: Gio.icon_new_for_string(`${this.path}/icons/open_icon.svg`),
+            style_class: 'system-status-icon',
+            icon_size: 16,
+        });
+
         this._indicator = this._initIndicator();
         
         //* modify default addContainer entrypoint
@@ -63,30 +75,41 @@ export default class Lilypad extends Extension {
 
     disable() {
         Panel.Panel.prototype.addToStatusArea = Panel.Panel.prototype._originalAddToStatusArea;
-        Panel.Panel.prototype._originalAddToStatusArea = undefined;
+        Panel.Panel.prototype._originalAddToStatusArea = null;
 
-        this._signalHandlers.forEach(handler => handler.object.disconnect(handler.signal));
+        this._containerService?.destroy();
+        this._containerService = null;
 
         this._indicator?.destroy();
         this._indicator = null;
 
+        this._closedIcon?.destroy();
+        this._closedIcon = null;
+        this._openIcon?.destory();
+        this._openIcon = null;
+
+        this._settings = null;
+
         console.log("Lilypad extension stopped.")
     }
 
-    
-
     _initIndicator() {
         let indicator = new PanelMenu.Button(0.5, _('Lilypad'), false);
+        
+        const setIcon = (visible) => {
+            // remove existing icon
+            if (indicator.get_children().length) {
+                indicator.remove_all_children();
+            }
 
-        let icon = new St.Icon({
-            icon_name: 'camera-shutter-symbolic',
-            style_class: 'system-status-icon',
-        });
-        indicator.add_child(icon);
+            if (visible) {
+                indicator.add_child(this._openIcon);
+            } else {
+                indicator.add_child(this._closedIcon);
+            }
+        };
 
-        let reorderButton = new PopupMenu.PopupMenuItem(_("Reorder"));
-        reorderButton.connect('activate', this._containerService.arrange.bind(this._containerService));
-        indicator.menu.addMenuItem(reorderButton);
+        setIcon(this._settings.get_boolean("show-icons"));
 
         let clearButton = new PopupMenu.PopupMenuItem(_("Clear"));
         clearButton.connect('activate', this._containerService.clearOrder.bind(this._containerService));
@@ -98,14 +121,15 @@ export default class Lilypad extends Extension {
 
         indicator.connect('button-press-event', (actor, event) => {
             switch (event.get_button()) {
-                // do not show menu
+                // do not show menu on left click
                 case Clutter.BUTTON_PRIMARY:
                     if (this._settings.get_strv("lilypad-order").length === 0) {
                         break;
                     }
                     
                     indicator.menu.toggle();
-                    this._containerService.toggleIcons();
+                    let isVisible = this._containerService.toggleIcons();
+                    setIcon(isVisible);
                     break;
                 case Clutter.BUTTON_MIDDLE:
                     indicator.menu.toggle();

@@ -17,7 +17,11 @@ export default class ContainerService extends GObject.Object {
         this._settings          = args["Settings"] || null;
         this._extensionPath     = args["Path"] || null;
 
-        this._settings.connect("changed::reorder", this.arrange.bind(this));
+        this._signalHandler = [];
+        this._signalHandler.push({
+            object: this._settings,
+            id: this._settings.connect("changed::reorder", this.arrange.bind(this))
+        });
 
         this._containerName;
     }
@@ -25,15 +29,14 @@ export default class ContainerService extends GObject.Object {
     clearOrder() {
         this._settings.set_strv('lilypad-order', []);
         this._settings.set_strv('rightbox-order', []);
+
+        // store current order
+        this._setIconsVisibility(true);
+        this.arrange();
     }
 
-    toggleIcons() {
+    _setIconsVisibility(show) {
         let lilypadOrder = this._settings.get_strv('lilypad-order');
-        let showIcons    = this._settings.get_boolean('show-icons');
-        
-        // toggle showIcons
-        showIcons ^= 1;
-        this._settings.set_boolean('show-icons', showIcons);
 
         const roleOrder = this.getOrder();
         for (let role of roleOrder) {
@@ -41,14 +44,24 @@ export default class ContainerService extends GObject.Object {
             if (lilypadOrder.includes(roleName)) {
                 const container = Main.panel.statusArea[role].container;
                 
-                if (showIcons) {
+                if (show) {
                     container.show();
                 } else {
                     container.hide();
                 }
             }
         }
+    }
 
+    toggleIcons() {
+        let showIcons = this._settings.get_boolean('show-icons');
+        
+        // toggle showIcons
+        showIcons ^= 1;
+        this._setIconsVisibility(showIcons);
+        this._settings.set_boolean('show-icons', showIcons);
+
+        return showIcons;
     }
 
     arrange() {
@@ -57,42 +70,6 @@ export default class ContainerService extends GObject.Object {
         let showIcons     = this._settings.get_strv('show-icons');
         const roleOrder   = this.getOrder();
 
-        log(rightBoxOrder)
-        log(lilypadOrder)
-
-        let hasNewIcon = false;
-        let iconOrder = [];
-        let iconInd = 0;
-
-        let buttonIndex = rightBoxOrder.indexOf("lilypad");
-        for (let role of roleOrder) {
-            const rightBoxIndex = rightBoxOrder.indexOf(getRoleName(role));
-            const lilypadIndex = lilypadOrder.indexOf(getRoleName(role));
-            hasNewIcon = hasNewIcon || (rightBoxIndex === -1 && lilypadIndex === -1);
-
-            if (lilypadIndex !== -1) {
-                iconOrder.push(lilypadIndex + buttonIndex);
-            }
-            else {
-                if (rightBoxIndex >= buttonIndex) {
-                    iconOrder.push(rightBoxIndex + lilypadOrder.length);
-                } else {
-                    iconOrder.push(rightBoxIndex);
-                }
-
-                iconInd++;
-            }
-        }
-
-        if (!hasNewIcon) {
-            if (JSON.stringify(iconOrder) === JSON.stringify(iconOrder.toSorted((a, b) => a - b))) {
-                // compare with numerically sorted array
-                return;
-            }
-        }
-
-
-        log("NEED TO REORDER TO", JSON.stringify(rightBoxOrder));
         roleOrder.forEach((role) => {
             // insert new roles to arrange
             const roleName = getRoleName(role);
@@ -121,7 +98,6 @@ export default class ContainerService extends GObject.Object {
                                 const groupedRoleName = getRoleName(groupedRole);
                                 
                                 if (targetRole === groupedRoleName) {
-                                    log(groupedRoleName)
                                     const groupedContainer = Main.panel.statusArea[groupedRole].container;
                                     Main.panel._rightBox.insert_child_at_index(groupedContainer, ind);
 
@@ -173,9 +149,15 @@ export default class ContainerService extends GObject.Object {
                 roleOrder.push(this._containerName.get(container));
             }
         }
-
-        log("detected: ",roleOrder)
         
         return roleOrder;
+    }
+
+    destroy() {
+        this._setIconsVisibility(true);
+
+        this._signalHandler.forEach(signal => signal.object.disconnect(signal.id));
+
+        super.destory();
     }
 }
