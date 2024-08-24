@@ -85,7 +85,7 @@ export default class Lilypad extends Extension {
 
         this._closedIcon?.destroy();
         this._closedIcon = null;
-        this._openIcon?.destory();
+        this._openIcon?.destroy();
         this._openIcon = null;
 
         this._settings = null;
