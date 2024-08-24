@@ -2,10 +2,6 @@
 
 <schemalist>
 
-    <enum id="org.gnome.shell.extensions.lilypad.enum-test">
-        <value value="0" nick="TOP"/>
-    </enum>
-
     <schema id="org.gnome.shell.extensions.lilypad" path="/org/gnome/shell/extensions/lilypad/">
 
         <key type="as" name="rightbox-order">
@@ -26,10 +22,6 @@
         <key type="b" name="show-icons">
             <default>true</default>
         </key>
-
-        <!-- <key name="my-position" enum="org.gnome.shell.extensions.lilypad.enum-test">
-            <default>'TOP'</default>
-        </key> -->
     
     </schema>
 </schemalist>
