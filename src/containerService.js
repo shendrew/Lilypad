@@ -157,7 +157,5 @@ export default class ContainerService extends GObject.Object {
         this._setIconsVisibility(true);
 
         this._signalHandler.forEach(signal => signal.object.disconnect(signal.id));
-
-        super.destory();
     }
 }
