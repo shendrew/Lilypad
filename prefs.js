@@ -1,6 +1,3 @@
-import Gtk from "gi://Gtk";
-import GLib from "gi://GLib";
-
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import PrefsUI from "./src/prefsUI.js";
@@ -8,13 +5,6 @@ import PrefsUI from "./src/prefsUI.js";
 export default class LilypadPreferences extends ExtensionPreferences {
     constructor(metadata) {
         super(metadata);
-    }
-
-    getPreferencesWidget() {
-        // OVERRIDEN by fillPreferencesWindow
-        return new Gtk.Label({
-            label: this.metadata.name,
-        });
     }
 
     fillPreferencesWindow(window) {
