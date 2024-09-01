@@ -4,7 +4,7 @@ import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js'
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import {getRoleName, getDisplayName, readJSON, saveJSON} from './utils/utils.js';
+import {getRoleName} from './utils/utils.js';
 
 export default class ContainerService extends GObject.Object {
     static {
@@ -138,11 +138,11 @@ export default class ContainerService extends GObject.Object {
         for (let i = 0; i < children.length; i++) {
             let container = children[i];
             let actor = container.get_first_child();
-            let actorName = getDisplayName(actor);
+            let actorName = getRoleName(this._containerName.get(container));
 
             // conditions to exclude
             if (!actor.visible) continue;
-            if (actorName === "System") continue;
+            if (actorName === "quickSettings") continue;
             
             if (container && actor.is_visible()) {
                 // accessible name could change, so push the raw role first

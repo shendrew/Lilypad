@@ -28,13 +28,3 @@ export function getRoleName(role) {
     roleName = role.split('/');         // for parsing ayatana appindicators
     return roleName[roleName.length - 1].split('@')[0];
 }
-
-export function getDisplayName(actor) {
-    if (actor.accessible_name === "") {
-        const indicatorName = actor?._indicator?._uniqueId.split('@/');
-        return indicatorName[indicatorName.length - 1];
-    }
-    
-    // native GTK widget
-    return actor.accessible_name
-}
