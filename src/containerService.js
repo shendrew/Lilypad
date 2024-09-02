@@ -138,6 +138,8 @@ export default class ContainerService extends GObject.Object {
         for (let i = 0; i < children.length; i++) {
             let container = children[i];
             let actor = container.get_first_child();
+
+	    if (this._containerName.get(container) === undefined) continue;
             let actorName = getRoleName(this._containerName.get(container));
 
             // conditions to exclude
