@@ -12,6 +12,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
             InternalChildren: [
                 "rightbox-order",
                 "lilypad-order",
+                "clear-button"
             ]
         }, this);
     }
@@ -25,6 +26,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._lilypadList  = this._lilypad_order;
 
         this._initDragMenu();
+        this._initClearButton();
     }
     
     /*
@@ -142,6 +144,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
             return false;
         }
 
+        // remove row
         for (const row of this._lilypadList) {
             if (row === value) {
                 if (targetRow.title === "-- lilypad button --") return false;
@@ -158,8 +161,10 @@ export default class PrefsUI extends Adw.PreferencesPage {
             }
         }
 
+        // insert row
         listbox.insert(value, targetIndex);
         
+        // store order
         let rightBoxOrder = [];
         for (const row of this._rightBoxList) {
             rightBoxOrder.push(row.title);
@@ -175,9 +180,46 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._settings.set_strv("lilypad-order", lilypadOrder);
         this._settings.set_strv("rightbox-order", rightBoxOrder);
         
-        const reorder_state = this._settings.get_boolean("reorder");
-        this._settings.set_boolean("reorder", reorder_state^1);
+        // reorder indicators to reflect settings
+        this._emitReorder();
 
         return true;
+    }
+
+    _initClearButton() {        
+        this._clear_button.connect("clicked", () => {
+            const parentWindow = this.get_ancestor(Gtk.Window);
+            
+            const dialog = new Gtk.MessageDialog({
+                transient_for: parentWindow,
+                modal: true,
+                buttons: Gtk.ButtonsType.YES_NO,
+                message_type: Gtk.MessageType.QUESTION,
+                text: "Are you sure you want to perform this action?",
+                secondary_text: "This action cannot be undone.",
+            });
+
+            dialog.connect('response', (dialog, response) => {
+                if (response === Gtk.ResponseType.YES) {
+                    this._settings.set_strv('lilypad-order', []);
+                    this._settings.set_strv('rightbox-order', []);
+                    this._emitReorder();
+
+                    // close parent window if YES
+                    if (parentWindow) {
+                        parentWindow.close();
+                    }
+                }
+                dialog.destroy(); // destroy popup
+            });
+
+            dialog.show();
+        });
+        
+    }
+
+    _emitReorder() {
+        const reorder_state = this._settings.get_boolean("reorder");
+        this._settings.set_boolean("reorder", reorder_state^1);
     }
 }
