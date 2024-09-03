@@ -129,6 +129,9 @@ export default class PrefsUI extends Adw.PreferencesPage {
     _onTargetDropped(_drop, value, _x, y, listbox) {
         const targetRow = listbox.get_row_at_y(y);
         const targetIndex = targetRow.get_index();
+
+        this._lilypadList.drag_unhighlight_row();
+        this._rightBoxList.drag_unhighlight_row();
         
         // If value or the target row is null, do not accept the drop
         if (!value || !targetRow) {
