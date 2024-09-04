@@ -67,5 +67,35 @@
       </object>
     </child>
 
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Clear Order</property>
+        <property name="description" translatable="yes">Clears indicators stored in settings</property>
+        <property name="header-suffix">
+          <object class="GtkButton" id="clear-button">
+            <style>
+              <class name="destructive-action" />
+            </style>
+            <property name="halign">start</property>
+            <property name="valign">center</property>
+            <property name="margin-end">15</property>
+            <child>
+              <object class="GtkBox">
+                <property name="margin-start">15</property>
+                <property name="margin-end">15</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Clear</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+
   </template>
 </interface>

@@ -70,6 +70,11 @@ export default class ContainerService extends GObject.Object {
         let showIcons     = this._settings.get_boolean('show-icons');
         const roleOrder   = this.getOrder();
 
+        // if order was reset, change to CLOSED icon
+        if (rightBoxOrder.length === 0) {
+            this._setIconsVisibility(false);
+        }        
+
         roleOrder.forEach((role) => {
             // insert new roles to arrange
             const roleName = getRoleName(role);

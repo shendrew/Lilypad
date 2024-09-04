@@ -111,10 +111,6 @@ export default class Lilypad extends Extension {
 
         setIcon(this._settings.get_boolean("show-icons"));
 
-        let clearButton = new PopupMenu.PopupMenuItem(_("Clear"));
-        clearButton.connect('activate', this._containerService.clearOrder.bind(this._containerService));
-        indicator.menu.addMenuItem(clearButton);
-
         let settingsItem = new PopupMenu.PopupMenuItem(_('Settings'));
         settingsItem.connect('activate', () => this.openPreferences());
         indicator.menu.addMenuItem(settingsItem);
