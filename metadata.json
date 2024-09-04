@@ -1,6 +1,6 @@
 {
     "name": "Lilypad",
-    "description": "Organize and hide top bar icons",
+    "description": "Organize, hide, and reorder top bar indicators",
     "uuid": "lilypad@shendrew.github.io",
     "url": "https://github.com/shendrew/Lilypad",
     "settings-schema": "org.gnome.shell.extensions.lilypad",
