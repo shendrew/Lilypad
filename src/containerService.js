@@ -67,7 +67,7 @@ export default class ContainerService extends GObject.Object {
     arrange() {
         let rightBoxOrder = this._settings.get_strv('rightbox-order');
         let lilypadOrder  = this._settings.get_strv('lilypad-order');
-        let showIcons     = this._settings.get_strv('show-icons');
+        let showIcons     = this._settings.get_boolean('show-icons');
         const roleOrder   = this.getOrder();
 
         roleOrder.forEach((role) => {
