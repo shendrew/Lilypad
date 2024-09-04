@@ -39,14 +39,15 @@ Install the latest version directly from [GNOME Extensions](https://extensions.g
 
 #### Method 2: install from source
 1. Clone and the zip the repository OR download the archive from:
-```https://github.com/shendrew/Lilypad```
+```https://github.com/shendrew/Lilypad/zipball/master```
+
 2. Rename the zip file to:
 ```lilypad@shendrew.github.io.zip```
+
 3. Install with:
 ```gnome-extensions install -f lilypad@shendrew.github.io.zip```
-4. Re-login
 
----
+4. Re-login
 
 ## Resources
 Very useful links that helped me build this project:
