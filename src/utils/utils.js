@@ -19,12 +19,21 @@ export function saveJSON(filePath, data) {
 }
 
 export function getRoleName(role) {
-    let roleName;
-    if (role.includes("appindicator")) {
-        roleName = role.split('@/');
-        role = roleName[roleName.length - 1];
-    }
-    
-    roleName = role.split('/');         // for parsing ayatana appindicators
-    return roleName[roleName.length - 1].split('@')[0];
+    let roleName = role;
+
+    //* parse ayatana appindicators
+    // ex: appindicator-:1.102@/org/ayatana/NotificationItem/dropbox_client_677911
+    roleName = roleName.split('/');   
+    roleName = roleName[roleName.length - 1];
+
+    //* parse gnome extension uuids
+    // ex: lilypad@shendrew.github.io
+    roleName = roleName.split('@')[0];
+
+    //* ignore wildcards from indicator IDs
+    const regex = /((\d)*[A-Z]+(\d)*)+/gi;
+    const keyWords = roleName.match(regex);
+
+    const display = keyWords.join('_');
+    return display;
 }
