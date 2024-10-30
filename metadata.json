@@ -5,7 +5,7 @@
     "url": "https://github.com/shendrew/Lilypad",
     "settings-schema": "org.gnome.shell.extensions.lilypad",
     "shell-version": [
-        "46"
+        "46", "47"
     ],
     "version-name": "1.0.2"
 }
