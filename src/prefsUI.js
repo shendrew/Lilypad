@@ -12,6 +12,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
             InternalChildren: [
                 "rightbox-order",
                 "lilypad-order",
+                "ignored-order",
                 "clear-button"
             ]
         }, this);
@@ -24,6 +25,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
         
         this._rightBoxList = this._rightbox_order;
         this._lilypadList  = this._lilypad_order;
+        this._ignoredList = this._ignored_order
 
         this._initDragMenu();
         this._initClearButton();
@@ -35,6 +37,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
      */
     _addRow(dragBox, rowName, index) {
         let row = new Adw.ActionRow({ title: rowName, selectable: false});
+        if (rowName) {
         row.add_prefix(
             new Gtk.Image({
             icon_name: "list-drag-handle-symbolic",
@@ -91,13 +94,14 @@ export default class PrefsUI extends Adw.PreferencesPage {
         // Update row visuals during drag
         dropController.connect("enter", () => dragBox.drag_highlight_row(row) );
         dropController.connect("leave", () => dragBox.drag_unhighlight_row() );
-
+    }
         dragBox.insert(row, index);
     }
     
     _initDragMenu() {
         const rightBoxOrder = this._settings.get_strv("rightbox-order");
         const lilypadOrder = this._settings.get_strv("lilypad-order");
+        const ignoredOrder = this._settings.get_strv("ignored-order");
 
         for (const row of this._lilypadList) {
             // setup highlighting for lilypad group placeholder
@@ -110,9 +114,11 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
         const rightBoxTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
         const lilypadTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
+        const ignoredTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
     
         this._rightBoxList.add_controller(rightBoxTarget);
-        this._lilypadList.add_controller(lilypadTarget);    
+        this._lilypadList.add_controller(lilypadTarget);  
+        this._ignoredList.add_controller(ignoredTarget);    
         
         // add rows to drag boxes
         for (const iconName of rightBoxOrder) {
@@ -123,9 +129,18 @@ export default class PrefsUI extends Adw.PreferencesPage {
             this._addRow(this._lilypadList, iconName, lilypadIndex);
             lilypadIndex++;
         }
+        
+        for (const iconName of ignoredOrder) {
+            this._addRow(this._ignoredList, iconName, -1);
+        }
+        
+        if (!ignoredOrder.length) {
+            this._addRow(this._ignoredList, "", -1);
+        }
 
         rightBoxTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._rightBoxList));
         lilypadTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._lilypadList));
+        ignoredTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._ignoredList));
     }
 
     _onTargetDropped(_drop, value, _x, y, listbox) {
@@ -134,15 +149,18 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
         this._lilypadList.drag_unhighlight_row();
         this._rightBoxList.drag_unhighlight_row();
+        this._ignoredList.drag_unhighlight_row();
         
         // If value or the target row is null, do not accept the drop
         if (!value || !targetRow) {
             return false;
         }
 
-        if (value.title === "lilypad" && listbox === this._lilypadList) {
+        if (value.title === "lilypad" && (listbox === this._lilypadList || listbox === this._ignoredList)) {
             return false;
         }
+
+    
 
         // remove row
         for (const row of this._lilypadList) {
@@ -161,6 +179,14 @@ export default class PrefsUI extends Adw.PreferencesPage {
             }
         }
 
+        for (const row of this._ignoredList) {
+            if (row === value) {
+                this._ignoredList.remove(value);
+                break;
+            }          
+        }
+
+        
         // insert row
         listbox.insert(value, targetIndex);
         
@@ -177,9 +203,23 @@ export default class PrefsUI extends Adw.PreferencesPage {
             }
         }
         
+        let ignoredOrder = [];
+        for (const row of this._ignoredList) {
+            if (row.title == "") {
+                this._ignoredList.remove(row);
+            } else {
+                ignoredOrder.push(row.title);
+            }            
+        }
+
+        if (!ignoredOrder.length) {
+            this._addRow(this._ignoredList, "", -1);
+        }
+
         this._settings.set_strv("lilypad-order", lilypadOrder);
         this._settings.set_strv("rightbox-order", rightBoxOrder);
-        
+        this._settings.set_strv("ignored-order", ignoredOrder);
+
         // reorder indicators to reflect settings
         this._emitReorder();
 
@@ -203,6 +243,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
                 if (response === Gtk.ResponseType.YES) {
                     this._settings.set_strv('lilypad-order', []);
                     this._settings.set_strv('rightbox-order', []);
+                    this._settings.set_strv('ignored-order', []);
                     this._emitReorder();
 
                     // close parent window if YES
