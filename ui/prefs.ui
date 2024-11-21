@@ -69,6 +69,32 @@
 
     <child>
       <object class="AdwPreferencesGroup">
+        <property name="title">Blacklisted Icons</property>
+        <property name="description">List of icons that will manage their own placement, ignored by Lilypad. It's recommended to reload the GNOME Shell for changes to take effect.</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">1</property>
+            <child>
+              <object class="AdwClamp">
+                <property name="maximum-size">600</property>
+                <child>
+                  <object class="GtkListBox" id="ignored-order">
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+              
+
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">Clear Order</property>
         <property name="description" translatable="yes">Clears indicators stored in settings</property>
         <property name="header-suffix">

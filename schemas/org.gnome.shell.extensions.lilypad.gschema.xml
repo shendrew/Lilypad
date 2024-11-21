@@ -15,6 +15,11 @@
             <summary>Icons in collapsible Lilypad menu</summary>
         </key>
 
+        <key type="as" name="ignored-order">
+            <default>[]</default>
+            <summary>Icons ignored by Lilypad</summary>
+        </key>
+
         <key type="b" name="reorder">
             <default>false</default>
         </key>

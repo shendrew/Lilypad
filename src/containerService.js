@@ -130,6 +130,7 @@ export default class ContainerService extends GObject.Object {
 
     // Get current order of icons in the top bar
     getOrder() {
+        let ignoredOrder = this._settings.get_strv('ignored-order');
         // GET widget role name
         this._containerName = new Map();
         for (const role in Main.panel.statusArea) {
@@ -143,14 +144,15 @@ export default class ContainerService extends GObject.Object {
         for (let i = 0; i < children.length; i++) {
             let container = children[i];
             let actor = container.get_first_child();
-
+       
 	    if (this._containerName.get(container) === undefined) continue;
+        console.log("lilypad", this._containerName.get(container), container)
             let actorName = getRoleName(this._containerName.get(container));
 
             // conditions to exclude
             if (!actor.visible) continue;
-            if (actorName === "quickSettings") continue;
-            
+            if (actorName === "quickSettings" ||  ignoredOrder.includes(actorName)) continue;
+
             if (container && actor.is_visible()) {
                 // accessible name could change, so push the raw role first
                 roleOrder.push(this._containerName.get(container));
