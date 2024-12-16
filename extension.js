@@ -120,6 +120,7 @@ export default class Lilypad extends Extension {
                 // do not show menu on left click
                 case Clutter.BUTTON_PRIMARY:
                     if (this._settings.get_strv("lilypad-order").length === 0) {
+                        setIcon(false);     // closed icon
                         break;
                     }
                     
