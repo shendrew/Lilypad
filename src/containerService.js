@@ -145,8 +145,9 @@ export default class ContainerService extends GObject.Object {
             let container = children[i];
             let actor = container.get_first_child();
        
-	    if (this._containerName.get(container) === undefined) continue;
-        console.log("lilypad", this._containerName.get(container), container)
+            // skip if actor or container has been removed w/o cleanup
+            if (!actor || this._containerName.get(container) === undefined) continue;
+            // console.log("lilypad found:", this._containerName.get(container), container)
             let actorName = getRoleName(this._containerName.get(container));
 
             // conditions to exclude
