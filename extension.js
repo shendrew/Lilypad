@@ -38,10 +38,10 @@ export default class Lilypad extends Extension {
         this._settings = this.getSettings();
 
         this._containerService = new ContainerService({
-            Settings: this._settings,
-            Path: this.path,
+            settings: this._settings,
+            path: this.path,
         });
-        
+
         // create icons
         this._closedIcon = new St.Icon({
             gicon: Gio.icon_new_for_string(`${this.path}/icons/closed_icon.svg`),
@@ -54,8 +54,11 @@ export default class Lilypad extends Extension {
             icon_size: 16,
         });
 
-        this._indicator = this._initIndicator();
-        
+        this._indicator = new PanelMenu.Button(0.5, _('Lilypad'), false);
+        this._initIndicator(this._indicator);
+
+        this._max_collapse_retry_times = 5;
+
         //* modify default addContainer entrypoint
         Panel.Panel.prototype._originalAddToStatusArea = Panel.Panel.prototype.addToStatusArea;
         const arrange = () => {
@@ -70,7 +73,17 @@ export default class Lilypad extends Extension {
         Main.panel.addToStatusArea(this.uuid, this._indicator);
 
 
+        this._containerService._addIconVisibilityListeners(this._onIconVisibilityChange.bind(this));
         console.log("Lilypad extension started...")
+    }
+
+    _onIconVisibilityChange(actor, show, destroy = false) {
+        actor.track_hover = show;
+        for (let menu of Main.panel.menuManager._menus) {
+            if (menu.sourceActor == actor) {
+                menu.actor.track_hover = show
+            }
+        }
     }
 
     disable() {
@@ -89,52 +102,107 @@ export default class Lilypad extends Extension {
         this._openIcon = null;
 
         this._settings = null;
+        this._timerId = -1
 
         console.log("Lilypad extension stopped.")
     }
 
     _initIndicator() {
-        let indicator = new PanelMenu.Button(0.5, _('Lilypad'), false);
-        
-        const setIcon = (visible) => {
-            // remove existing icon
-            if (indicator.get_children().length) {
-                indicator.remove_all_children();
-            }
-
-            if (visible) {
-                indicator.add_child(this._openIcon);
-            } else {
-                indicator.add_child(this._closedIcon);
-            }
-        };
-
-        setIcon(this._settings.get_boolean("show-icons"));
+        this._setIcon(this._settings.get_boolean("show-icons"));
 
         let settingsItem = new PopupMenu.PopupMenuItem(_('Settings'));
         settingsItem.connect('activate', () => this.openPreferences());
-        indicator.menu.addMenuItem(settingsItem);
+        this._indicator.menu.addMenuItem(settingsItem);
 
-        indicator.connect('button-press-event', (actor, event) => {
+        this._indicator.track_hover = true
+
+        this._indicator.connect('button-press-event', (actor, event) => {
             switch (event.get_button()) {
                 // do not show menu on left click
                 case Clutter.BUTTON_PRIMARY:
-                    if (this._settings.get_strv("lilypad-order").length === 0) {
-                        setIcon(false);     // closed icon
-                        break;
-                    }
-                    
-                    indicator.menu.toggle();
-                    let isVisible = this._containerService.toggleIcons();
-                    setIcon(isVisible);
+                    this._toggle(true)
                     break;
                 case Clutter.BUTTON_MIDDLE:
-                    indicator.menu.toggle();
+                    this._open_menu()
                     break;
             }
             return Clutter.EVENT_PROPAGATE;
         });
-        
-        return indicator;
+    }
+
+    _open_menu() {
+        this._indicator.menu.toggle();
+    }
+
+    _toggle(is_click = false){
+        if (this._settings.get_strv("lilypad-order").length === 0) {
+            this._setIcon(false);     // closed icon
+            return false;
+        }
+
+        if (is_click) {
+            this._open_menu();
+        }
+
+        let isVisible = this._containerService.toggleIcons();
+        this._setIcon(isVisible);
+
+        if (isVisible) {
+            this._tryStartAutoCollapseTimerIfVisible()
+        }
+        return isVisible;
+    }
+
+    _setIcon(visible) {
+        // remove existing icon
+        if (this._indicator.get_children().length) {
+            this._indicator.remove_all_children();
+        }
+
+        if (visible) {
+            this._indicator.add_child(this._openIcon);
+        } else {
+            this._indicator.add_child(this._closedIcon);
+        }
+    };
+
+    _tryStartAutoCollapseTimerIfVisible(times = 0) {
+        let autoCollapse = this._settings.get_boolean('auto-collapse');
+        let showIcons = this._settings.get_boolean('show-icons');
+        if (showIcons && autoCollapse) {
+            clearTimeout(this._timerId);
+            let autoCollapseMillisecond = this._settings.get_int('auto-collapse-millisecond') / this._max_collapse_retry_times;
+            this._timerId = setTimeout(() => {
+                let detectActors  = []
+                detectActors.push(this._indicator);
+                detectActors.push(...this._containerService.getOrderActors());
+
+                let collapse = true
+
+                for (let menu of Main.panel.menuManager._menus) {
+                    for (let orderActor of detectActors) {
+                        if (((menu.actor?.hover || menu.actor?.is_visible()) &&
+                                menu.sourceActor == orderActor) ||
+                            orderActor.hover) {
+                            collapse = false
+                            break
+                        }
+                    }
+                    if (!collapse) {
+                        break
+                    }
+                }
+
+                if (collapse) {
+                    if (times === this._max_collapse_retry_times) {
+                        this._containerService.switchIcons(false);
+                        this._setIcon(false);
+                    }
+                    this._tryStartAutoCollapseTimerIfVisible(++times)
+                } else {
+                    this._tryStartAutoCollapseTimerIfVisible(0)
+                }
+            }, autoCollapseMillisecond)
+        }
     }
 }
