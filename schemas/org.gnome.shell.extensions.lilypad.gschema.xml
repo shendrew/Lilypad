@@ -25,8 +25,16 @@
         </key>
 
         <key type="b" name="show-icons">
+            <default>false</default>
+        </key>
+
+        <key name="auto-collapse" type="b">
             <default>true</default>
         </key>
-    
+
+        <key name="auto-collapse-millisecond" type="i">
+            <default>1000</default>
+        </key>
+
     </schema>
 </schemalist>

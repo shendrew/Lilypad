@@ -13,9 +13,10 @@ export default class ContainerService extends GObject.Object {
 
     _init(args) {
         super._init();
-        
-        this._settings          = args["Settings"] || null;
-        this._extensionPath     = args["Path"] || null;
+
+        this._settings          = args["settings"] || null;
+        this._extensionPath     = args["path"] || null;
+        this._listener = null;
 
         this._signalHandler = [];
         this._signalHandler.push({
@@ -26,40 +27,48 @@ export default class ContainerService extends GObject.Object {
         this._containerName;
     }
 
-    clearOrder() {
-        this._settings.set_strv('lilypad-order', []);
-        this._settings.set_strv('rightbox-order', []);
-
-        // store current order
-        this._setIconsVisibility(true);
-        this.arrange();
+    _addIconVisibilityListeners(listener) {
+        this._iconVisibilityListener = listener;
     }
 
-    _setIconsVisibility(show) {
-        let lilypadOrder = this._settings.get_strv('lilypad-order');
+    _setIconsVisibility(show, destroy = false) {
+        const orderActors = this.getOrderActors()
+        orderActors.forEach(actor => {
+            if (show) {
+                actor.container.show();
+            } else {
+                actor.container.hide();
+            }
+            this._iconVisibilityListener(actor, show, destroy);
+        });
+    }
 
+    getOrderActors() {
+        let lilypadOrder = this._settings.get_strv('lilypad-order');
+        const orderActors = []
         const roleOrder = this.getOrder();
         for (let role of roleOrder) {
             const roleName = getRoleName(role);
+            // console.log(roleName);
             if (lilypadOrder.includes(roleName)) {
-                const container = Main.panel.statusArea[role].container;
-                
-                if (show) {
-                    container.show();
-                } else {
-                    container.hide();
-                }
+                // console.log(Main.panel.statusArea[role]);
+                orderActors.push(Main.panel.statusArea[role]);
             }
         }
+        return orderActors;
+    }
+
+    switchIcons(showIcons) {
+        this._setIconsVisibility(showIcons);
+        this._settings.set_boolean('show-icons', showIcons);
     }
 
     toggleIcons() {
         let showIcons = this._settings.get_boolean('show-icons');
-        
+
         // toggle showIcons
         showIcons ^= 1;
-        this._setIconsVisibility(showIcons);
-        this._settings.set_boolean('show-icons', showIcons);
+        this.switchIcons(showIcons);
 
         return showIcons;
     }
@@ -73,7 +82,7 @@ export default class ContainerService extends GObject.Object {
         // if order was reset, change to CLOSED icon
         if (rightBoxOrder.length === 0) {
             this._setIconsVisibility(false);
-        }        
+        }
 
         roleOrder.forEach((role) => {
             // insert new roles to arrange
@@ -81,7 +90,7 @@ export default class ContainerService extends GObject.Object {
             if (!rightBoxOrder.includes(roleName) && !lilypadOrder.includes(roleName)) {
                 rightBoxOrder.push(roleName);
             }
-            
+
             // remove role container from panel
             const container = Main.panel.statusArea[role].container;
             const boxContainer = container.get_parent();
@@ -101,7 +110,7 @@ export default class ContainerService extends GObject.Object {
                             const targetRole = lilypadOrder[j];
                             for (let groupedRole of roleOrder) {
                                 const groupedRoleName = getRoleName(groupedRole);
-                                
+
                                 if (targetRole === groupedRoleName) {
                                     const groupedContainer = Main.panel.statusArea[groupedRole].container;
                                     Main.panel._rightBox.insert_child_at_index(groupedContainer, ind);
@@ -117,7 +126,7 @@ export default class ContainerService extends GObject.Object {
                             }
                         }
                     }
-                    
+
                     const container = Main.panel.statusArea[role].container;
                     Main.panel._rightBox.insert_child_at_index(container, ind);
                     ind++;
@@ -138,13 +147,13 @@ export default class ContainerService extends GObject.Object {
             let container = Main.panel.statusArea[role].container;
             this._containerName.set(container, role);
         }
-        
+
         let roleOrder = [];
         let children = Main.panel._rightBox.get_children();
         for (let i = 0; i < children.length; i++) {
             let container = children[i];
             let actor = container.get_first_child();
-       
+
             // skip if actor or container has been removed w/o cleanup
             if (!actor || this._containerName.get(container) === undefined) continue;
             // console.log("lilypad found:", this._containerName.get(container), container)
@@ -159,12 +168,12 @@ export default class ContainerService extends GObject.Object {
                 roleOrder.push(this._containerName.get(container));
             }
         }
-        
+
         return roleOrder;
     }
 
     destroy() {
-        this._setIconsVisibility(true);
+        this._setIconsVisibility(true, true);
 
         this._signalHandler.forEach(signal => signal.object.disconnect(signal.id));
     }

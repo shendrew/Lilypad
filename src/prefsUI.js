@@ -1,8 +1,10 @@
+import Gio from 'gi://Gio';
 import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gdk from "gi://Gdk";
 import Gtk from "gi://Gtk";
 import GLib from "gi://GLib";
+
 
 export default class PrefsUI extends Adw.PreferencesPage {
     static {
@@ -13,7 +15,9 @@ export default class PrefsUI extends Adw.PreferencesPage {
                 "rightbox-order",
                 "lilypad-order",
                 "ignored-order",
-                "clear-button"
+                "clear-button",
+                "auto-collapse-millisecond-spin-button",
+                "auto-collapse-switch",
             ]
         }, this);
     }
@@ -22,15 +26,26 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._settings = params?.Settings;
         let {Settings, ...args} = params;
         super._init(args);
-        
+
+
         this._rightBoxList = this._rightbox_order;
         this._lilypadList  = this._lilypad_order;
         this._ignoredList = this._ignored_order
 
         this._initDragMenu();
         this._initClearButton();
+        this._initAutoCollapseMillisecondSwitchButton('auto-collapse-millisecond');
+        this._initAutoCollapseSwitch('auto-collapse');
     }
-    
+
+    _initAutoCollapseMillisecondSwitchButton(keyName) {
+        this._settings.bind(keyName, this._auto_collapse_millisecond_spin_button, "value", Gio.SettingsBindFlags.DEFAULT);
+    };
+
+    _initAutoCollapseSwitch(keyName) {
+        this._settings.bind(keyName, this._auto_collapse_switch, 'active', Gio.SettingsBindFlags.DEFAULT);
+    };
+
     /*
      * based on Workbench v46.1 Drag and Drop template
      * used under the terms of GPL-3.0
@@ -52,7 +67,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
         const dragSource = new Gtk.DragSource({
             actions: Gdk.DragAction.MOVE,
         });
-        
+
         row.add_controller(dragSource);
         row.add_controller(dropController);
 
@@ -84,10 +99,10 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
             dragWidget.append(dragRow);
             dragWidget.drag_highlight_row(dragRow);
-            
+
             const icon = Gtk.DragIcon.get_for_drag(drag);
             icon.child = dragWidget;
-            
+
             drag.set_hotspot(dragX, dragY);
         });
 
@@ -97,7 +112,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
     }
         dragBox.insert(row, index);
     }
-    
+
     _initDragMenu() {
         const rightBoxOrder = this._settings.get_strv("rightbox-order");
         const lilypadOrder = this._settings.get_strv("lilypad-order");
@@ -115,11 +130,11 @@ export default class PrefsUI extends Adw.PreferencesPage {
         const rightBoxTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
         const lilypadTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
         const ignoredTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
-    
+
         this._rightBoxList.add_controller(rightBoxTarget);
-        this._lilypadList.add_controller(lilypadTarget);  
-        this._ignoredList.add_controller(ignoredTarget);    
-        
+        this._lilypadList.add_controller(lilypadTarget);
+        this._ignoredList.add_controller(ignoredTarget);
+
         // add rows to drag boxes
         for (const iconName of rightBoxOrder) {
             this._addRow(this._rightBoxList, iconName, -1);
@@ -129,11 +144,11 @@ export default class PrefsUI extends Adw.PreferencesPage {
             this._addRow(this._lilypadList, iconName, lilypadIndex);
             lilypadIndex++;
         }
-        
+
         for (const iconName of ignoredOrder) {
             this._addRow(this._ignoredList, iconName, -1);
         }
-        
+
         if (!ignoredOrder.length) {
             this._addRow(this._ignoredList, "", -1);
         }
@@ -150,7 +165,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
         this._lilypadList.drag_unhighlight_row();
         this._rightBoxList.drag_unhighlight_row();
         this._ignoredList.drag_unhighlight_row();
-        
+
         // If value or the target row is null, do not accept the drop
         if (!value || !targetRow) {
             return false;
@@ -160,7 +175,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
             return false;
         }
 
-    
+
 
         // remove row
         for (const row of this._lilypadList) {
@@ -183,13 +198,13 @@ export default class PrefsUI extends Adw.PreferencesPage {
             if (row === value) {
                 this._ignoredList.remove(value);
                 break;
-            }          
+            }
         }
 
-        
+
         // insert row
         listbox.insert(value, targetIndex);
-        
+
         // store order
         let rightBoxOrder = [];
         for (const row of this._rightBoxList) {
@@ -202,14 +217,14 @@ export default class PrefsUI extends Adw.PreferencesPage {
                 lilypadOrder.push(row.title);
             }
         }
-        
+
         let ignoredOrder = [];
         for (const row of this._ignoredList) {
             if (row.title == "") {
                 this._ignoredList.remove(row);
             } else {
                 ignoredOrder.push(row.title);
-            }            
+            }
         }
 
         if (!ignoredOrder.length) {
@@ -226,10 +241,10 @@ export default class PrefsUI extends Adw.PreferencesPage {
         return true;
     }
 
-    _initClearButton() {        
+    _initClearButton() {
         this._clear_button.connect("clicked", () => {
             const parentWindow = this.get_ancestor(Gtk.Window);
-            
+
             const dialog = new Gtk.MessageDialog({
                 transient_for: parentWindow,
                 modal: true,
@@ -256,7 +271,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
             dialog.show();
         });
-        
+
     }
 
     _emitReorder() {

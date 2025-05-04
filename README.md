@@ -18,7 +18,7 @@ Inspired by [Dozer for macOS](https://github.com/Mortennn/Dozer).
 - [x] button to toggle visibility
 - [x] support for non-GTK native apps *(eg. Discord, Slack)*
 - [ ] permanently hide items
-- [ ] auto collapse timer
+- [x] auto collapse timer
 - [ ] input custom indicator alias
 - [ ] support for more GNOME versions
 

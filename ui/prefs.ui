@@ -42,7 +42,7 @@
                     <style>
                       <class name="boxed-list"/>
                     </style>
-                    
+
                     <child>
                       <object class="AdwActionRow">
                         <property name="title" translatable="true">-- lilypad button --</property>
@@ -56,7 +56,7 @@
                         </child>
                       </object>
                     </child>
-                    
+
                   </object>
                 </child>
               </object>
@@ -82,7 +82,7 @@
                     <style>
                       <class name="boxed-list"/>
                     </style>
-              
+
 
                   </object>
                 </child>
@@ -123,5 +123,36 @@
       </object>
     </child>
 
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Auto Collapse Millisecond</property>
+        <child type="header-suffix">
+          <object class="GtkSpinButton" id="auto-collapse-millisecond-spin-button">
+            <property name="valign">center</property>
+            <property name="digits">0</property>
+            <property name="climb_rate">10</property>
+            <property name="snap_to_ticks">true</property>
+            <property name="adjustment">
+              <object class="GtkAdjustment">
+                <property name="step_increment">100</property>
+                <property name="lower">0</property>
+                <property name="upper">10000</property>
+                <property name="page_size">0</property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Auto Collapse</property>
+        <child type="header-suffix">
+          <object class="GtkSwitch" id="auto-collapse-switch">
+            <property name="valign">center</property>
+          </object>
+        </child>
+      </object>
+    </child>
   </template>
 </interface>
