@@ -84,6 +84,7 @@ export default class ContainerService extends GObject.Object {
             this._setIconsVisibility(false);
         }
 
+        // remove all icons from the right box
         roleOrder.forEach((role) => {
             // insert new roles to arrange
             const roleName = getRoleName(role);
@@ -97,6 +98,28 @@ export default class ContainerService extends GObject.Object {
             boxContainer.remove_child(container);
         });
 
+        // add all grouped icons from offset
+        function addGroupedIcons(offset) {
+            for (let i=0; i<lilypadOrder.length; i++) {
+                const targetRole = lilypadOrder[i];
+                for (let groupedRole of roleOrder) {
+                    const groupedRoleName = getRoleName(groupedRole);
+
+                    if (targetRole === groupedRoleName) {
+                        const groupedContainer = Main.panel.statusArea[groupedRole].container;
+                        Main.panel._rightBox.insert_child_at_index(groupedContainer, i+offset);
+
+                        if (showIcons) {
+                            groupedContainer.show();
+                        } else {
+                            groupedContainer.hide();
+                        }
+                    }
+                }
+            }
+        }
+
+        // add all icons to the right box
         let ind=0;
         for (let i=0; i<rightBoxOrder.length; i++) {
             const settingsRole = rightBoxOrder[i];
@@ -105,26 +128,8 @@ export default class ContainerService extends GObject.Object {
 
                 if (settingsRole === roleName) {
                     if (roleName === "lilypad") {
-                        // add all grouped icons
-                        for (let j=0; j<lilypadOrder.length; j++) {
-                            const targetRole = lilypadOrder[j];
-                            for (let groupedRole of roleOrder) {
-                                const groupedRoleName = getRoleName(groupedRole);
-
-                                if (targetRole === groupedRoleName) {
-                                    const groupedContainer = Main.panel.statusArea[groupedRole].container;
-                                    Main.panel._rightBox.insert_child_at_index(groupedContainer, ind);
-
-                                    if (showIcons) {
-                                        groupedContainer.show();
-                                    } else {
-                                        groupedContainer.hide();
-                                    }
-                                    ind++;
-
-                                }
-                            }
-                        }
+                        addGroupedIcons(ind);
+                        ind += lilypadOrder.length;
                     }
 
                     const container = Main.panel.statusArea[role].container;
