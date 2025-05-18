@@ -117,11 +117,6 @@ export default class Lilypad extends Extension {
         this._indicator.track_hover = true
 
         this._indicator.connect('button-press-event', (actor, event) => {
-            if (event.get_device_type() === Clutter.InputDeviceType.TABLET_DEVICE
-                || event.get_device_type() === Clutter.InputDeviceType.TOUCHSCREEN_DEVICE) {
-                this._toggleIcons();
-                this._toggleMenu();
-            }
             console.log("lilypad pressed by: ", event.get_device_type());
             
             switch (event.get_button()) {
@@ -134,6 +129,19 @@ export default class Lilypad extends Extension {
                     this._toggleMenu();
                     break;
             }
+            return Clutter.EVENT_PROPAGATE;
+        });
+
+        this._indicator.connect('touch-event', (actor, event) => {
+            console.log("lilypad touched: ", event.get_device_type());
+
+            // only handle touch releases
+            if (event.type() != Clutter.EventType.TOUCH_END) {
+                return Clutter.EVENT_STOP;
+            }
+
+            this._toggleIcons();
+            this._toggleMenu();
             return Clutter.EVENT_PROPAGATE;
         });
     }
