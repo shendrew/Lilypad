@@ -116,9 +116,7 @@ export default class Lilypad extends Extension {
 
         this._indicator.track_hover = true
 
-        this._indicator.connect('button-press-event', (actor, event) => {
-            console.log("lilypad pressed by: ", event.get_device_type());
-            
+        this._indicator.connect('button-press-event', (actor, event) => {            
             switch (event.get_button()) {
                 // do not show menu on left click
                 case Clutter.BUTTON_PRIMARY:
@@ -133,8 +131,6 @@ export default class Lilypad extends Extension {
         });
 
         this._indicator.connect('touch-event', (actor, event) => {
-            console.log("lilypad touched: ", event.get_device_type(), event.type());
-
             // only handle initial tap
             switch (event.type()) {
                 case Clutter.EventType.TOUCH_BEGIN:
