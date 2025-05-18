@@ -142,7 +142,7 @@ export default class Lilypad extends Extension {
                     this._toggleMenu();
                     break;
                 default:
-                    this._toggleMenu();
+                    // ignore others, only touch_begin toggles gjs.button menu
                     break;
             }
 
