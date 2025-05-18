@@ -19,7 +19,7 @@ import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 
-import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as Panel from 'resource:///org/gnome/shell/ui/panel.js';
@@ -65,7 +65,7 @@ export default class Lilypad extends Extension {
             // preserves extension scope
             this._containerService.arrange();
         }
-        Panel.Panel.prototype.addToStatusArea = function(role, indicator, position, box) {
+        Panel.Panel.prototype.addToStatusArea = function (role, indicator, position, box) {
             this._originalAddToStatusArea(role, indicator, position, box);
             arrange();
         };
@@ -81,7 +81,7 @@ export default class Lilypad extends Extension {
         actor.track_hover = show;
         for (let menu of Main.panel.menuManager._menus) {
             if (menu.sourceActor == actor) {
-                menu.actor.track_hover = show
+                menu.actor.track_hover = show;
             }
         }
     }
@@ -102,7 +102,7 @@ export default class Lilypad extends Extension {
         this._openIcon = null;
 
         this._settings = null;
-        this._timerId = -1
+        this._timerId = -1;
 
         console.log("Lilypad extension stopped.")
     }
@@ -120,10 +120,10 @@ export default class Lilypad extends Extension {
             switch (event.get_button()) {
                 // do not show menu on left click
                 case Clutter.BUTTON_PRIMARY:
-                    this._toggle(true)
+                    this._toggle(true);
                     break;
                 case Clutter.BUTTON_MIDDLE:
-                    this._open_menu()
+                    this._open_menu();
                     break;
             }
             return Clutter.EVENT_PROPAGATE;
@@ -134,7 +134,7 @@ export default class Lilypad extends Extension {
         this._indicator.menu.toggle();
     }
 
-    _toggle(is_click = false){
+    _toggle(is_click = false) {
         if (this._settings.get_strv("lilypad-order").length === 0) {
             this._setIcon(false);     // closed icon
             return false;
@@ -148,7 +148,7 @@ export default class Lilypad extends Extension {
         this._setIcon(isVisible);
 
         if (isVisible) {
-            this._tryStartAutoCollapseTimerIfVisible()
+            this._tryStartAutoCollapseTimerIfVisible();
         }
         return isVisible;
     }
@@ -173,23 +173,22 @@ export default class Lilypad extends Extension {
             clearTimeout(this._timerId);
             let autoCollapseMillisecond = this._settings.get_int('auto-collapse-millisecond') / this._max_collapse_retry_times;
             this._timerId = setTimeout(() => {
-                let detectActors  = []
+                let detectActors = [];
                 detectActors.push(this._indicator);
                 detectActors.push(...this._containerService.getOrderActors());
 
-                let collapse = true
+                let collapse = true;
 
                 for (let menu of Main.panel.menuManager._menus) {
                     for (let orderActor of detectActors) {
-                        if (((menu.actor?.hover || menu.actor?.is_visible()) &&
-                                menu.sourceActor == orderActor) ||
-                            orderActor.hover) {
-                            collapse = false
-                            break
+                        if ( ((menu.actor?.hover || menu.actor?.is_visible()) && menu.sourceActor == orderActor)
+                                || orderActor.hover) {
+                            collapse = false;
+                            break;
                         }
                     }
                     if (!collapse) {
-                        break
+                        break;
                     }
                 }
 
@@ -198,11 +197,11 @@ export default class Lilypad extends Extension {
                         this._containerService.switchIcons(false);
                         this._setIcon(false);
                     }
-                    this._tryStartAutoCollapseTimerIfVisible(++times)
+                    this._tryStartAutoCollapseTimerIfVisible(++times);
                 } else {
-                    this._tryStartAutoCollapseTimerIfVisible(0)
+                    this._tryStartAutoCollapseTimerIfVisible(0);
                 }
-            }, autoCollapseMillisecond)
+            }, autoCollapseMillisecond);
         }
     }
 }
