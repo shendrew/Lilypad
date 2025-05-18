@@ -133,15 +133,19 @@ export default class Lilypad extends Extension {
         });
 
         this._indicator.connect('touch-event', (actor, event) => {
-            console.log("lilypad touched: ", event.get_device_type());
+            console.log("lilypad touched: ", event.get_device_type(), event.type());
 
-            // only handle touch releases
-            if (event.type() != Clutter.EventType.TOUCH_END) {
-                return Clutter.EVENT_STOP;
+            // only handle initial tap
+            switch (event.type()) {
+                case Clutter.EventType.TOUCH_BEGIN:
+                    this._toggleIcons();
+                    this._toggleMenu();
+                    break;
+                default:
+                    this._toggleMenu();
+                    break;
             }
 
-            this._toggleIcons();
-            this._toggleMenu();
             return Clutter.EVENT_PROPAGATE;
         });
     }
