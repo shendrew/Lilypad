@@ -17,16 +17,17 @@ Inspired by [Dozer for macOS](https://github.com/Mortennn/Dozer).
 - [x] drag and drop to reorder
 - [x] button to toggle visibility
 - [x] support for non-GTK native apps *(eg. Discord, Slack)*
-- [ ] permanently hide items
 - [x] auto collapse timer
+- [x] support for tablets and touchscreens
+- [ ] permanently hide items
 - [ ] input custom indicator alias
 - [ ] support for more GNOME versions
 
 ## Requirements
-Linux distribution running GNOME versions: 46, 47:
+Linux distribution running GNOME versions: 46, 47, 48:
 ```
-Fedora 40, 41
-Ubuntu 24.04, 24.10
+Fedora 40, 41, 42
+Ubuntu 24.04, 24.10, 25.04
 ...
 ```
 
@@ -39,7 +40,7 @@ Install the latest version directly from [GNOME Extensions](https://extensions.g
 
 #### Method 2: install from source
 1. Clone and the zip the repository OR download the archive from:
-```https://github.com/shendrew/Lilypad/zipball/master```
+```https://github.com/shendrew/Lilypad/archive/refs/heads/main.zip```
 
 2. Rename the zip file to:
 ```lilypad@shendrew.github.io.zip```
