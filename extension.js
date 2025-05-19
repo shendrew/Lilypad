@@ -102,7 +102,8 @@ export default class Lilypad extends Extension {
         this._openIcon = null;
 
         this._settings = null;
-        this._timerId = -1;
+        clearTimeout(this._timerId);
+        this._timerId = null;
 
         console.log("Lilypad extension stopped.")
     }
@@ -205,7 +206,7 @@ export default class Lilypad extends Extension {
                 }
 
                 if (collapse) {
-                    if (times === this._max_collapse_retry_times) {
+                    if (times >= this._max_collapse_retry_times) {
                         this._containerService.switchIcons(false);
                         this._setIcon(false);
                     }
