@@ -99,7 +99,9 @@ export default class ContainerService extends GObject.Object {
         });
 
         // add all grouped icons from offset
+        // returns: number of grouped icons
         function addGroupedIcons(offset) {
+            var numIcons = 0;
             for (let i=0; i<lilypadOrder.length; i++) {
                 const targetRole = lilypadOrder[i];
                 for (let groupedRole of roleOrder) {
@@ -107,16 +109,19 @@ export default class ContainerService extends GObject.Object {
 
                     if (targetRole === groupedRoleName) {
                         const groupedContainer = Main.panel.statusArea[groupedRole].container;
-                        Main.panel._rightBox.insert_child_at_index(groupedContainer, i+offset);
+                        Main.panel._rightBox.insert_child_at_index(groupedContainer, numIcons+offset);
 
                         if (showIcons) {
                             groupedContainer.show();
                         } else {
                             groupedContainer.hide();
                         }
+                        numIcons++;
                     }
                 }
             }
+
+            return numIcons;
         }
 
         // add all icons to the right box
@@ -128,8 +133,8 @@ export default class ContainerService extends GObject.Object {
 
                 if (settingsRole === roleName) {
                     if (roleName === "lilypad") {
-                        addGroupedIcons(ind);
-                        ind += lilypadOrder.length;
+                        const numGroupedIcons = addGroupedIcons(ind);
+                        ind += numGroupedIcons;
                     }
 
                     const container = Main.panel.statusArea[role].container;
