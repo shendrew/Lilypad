@@ -1,4 +1,3 @@
-import Gio from 'gi://Gio';
 import Adw from "gi://Adw";
 import GObject from "gi://GObject";
 import Gdk from "gi://Gdk";
@@ -6,18 +5,16 @@ import Gtk from "gi://Gtk";
 import GLib from "gi://GLib";
 
 
-export default class PrefsUI extends Adw.PreferencesPage {
+export default class OrderPage extends Adw.PreferencesPage {
     static {
         GObject.registerClass({
-            GTypeName: "PrefsUI",
-            Template: GLib.uri_resolve_relative(import.meta.url, "../ui/prefs.ui", null),
+            GTypeName: "OrderUI",
+            Template: GLib.uri_resolve_relative(import.meta.url, "../ui/order.ui", null),
             InternalChildren: [
                 "rightbox-order",
                 "lilypad-order",
                 "ignored-order",
                 "clear-button",
-                "auto-collapse-millisecond-spin-button",
-                "auto-collapse-switch",
             ]
         }, this);
     }
@@ -34,17 +31,8 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
         this._initDragMenu();
         this._initClearButton();
-        this._initAutoCollapseMillisecondSwitchButton('auto-collapse-millisecond');
-        this._initAutoCollapseSwitch('auto-collapse');
     }
 
-    _initAutoCollapseMillisecondSwitchButton(keyName) {
-        this._settings.bind(keyName, this._auto_collapse_millisecond_spin_button, "value", Gio.SettingsBindFlags.DEFAULT);
-    };
-
-    _initAutoCollapseSwitch(keyName) {
-        this._settings.bind(keyName, this._auto_collapse_switch, 'active', Gio.SettingsBindFlags.DEFAULT);
-    };
 
     /*
      * based on Workbench v46.1 Drag and Drop template
@@ -150,7 +138,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
         }
 
         if (!ignoredOrder.length) {
-            this._addRow(this._ignoredList, "", -1);
+            this._addRow(this._ignoredList, null, -1);
         }
 
         rightBoxTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._rightBoxList));
@@ -220,7 +208,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
 
         let ignoredOrder = [];
         for (const row of this._ignoredList) {
-            if (row.title == "") {
+            if (row.title == null) {
                 this._ignoredList.remove(row);
             } else {
                 ignoredOrder.push(row.title);
@@ -228,7 +216,7 @@ export default class PrefsUI extends Adw.PreferencesPage {
         }
 
         if (!ignoredOrder.length) {
-            this._addRow(this._ignoredList, "", -1);
+            this._addRow(this._ignoredList, null, -1);
         }
 
         this._settings.set_strv("lilypad-order", lilypadOrder);

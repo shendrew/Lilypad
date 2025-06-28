@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk" version="4.0"/>
-  <template class="PrefsUI" parent="AdwPreferencesPage">
+  <template class="OrderUI" parent="AdwPreferencesPage">
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">Topbar Order</property>
-        <property name="description">Order of icons in the right side of top bar</property>
+        <property name="title" translatable="yes">Topbar Order</property>
+        <property name="description" translatable="yes">Order of icons in the right side of top bar.</property>
         <child>
           <object class="GtkBox">
             <property name="orientation">1</property>
@@ -29,8 +29,8 @@
 
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">Collapsible Group</property>
-        <property name="description">Icons in collapsible menu</property>
+        <property name="title" translatable="yes">Collapsible Group</property>
+        <property name="description" translatable="yes">Icons in collapsible menu.</property>
         <child>
           <object class="GtkBox">
             <property name="orientation">1</property>
@@ -46,7 +46,7 @@
                     <child>
                       <object class="AdwActionRow">
                         <property name="title" translatable="true">-- lilypad button --</property>
-                        <property name="selectable" translatable="true">false</property>
+                        <property name="selectable">false</property>
                         <child type="prefix">
                           <object class="GtkImage">
                             <style>
@@ -69,8 +69,8 @@
 
     <child>
       <object class="AdwPreferencesGroup">
-        <property name="title">Blacklisted Icons</property>
-        <property name="description">List of icons that will manage their own placement, ignored by Lilypad. It's recommended to reload the GNOME Shell for changes to take effect.</property>
+        <property name="title" translatable="yes">Blacklisted Icons</property>
+        <property name="description" translatable="yes">List of icons that will manage their own placement, ignored by Lilypad. It's recommended to reload the GNOME Shell for changes to take effect.</property>
         <child>
           <object class="GtkBox">
             <property name="orientation">1</property>
@@ -120,38 +120,6 @@
             </child>
           </object>
         </property>
-      </object>
-    </child>
-
-    <child>
-      <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Auto Collapse Millisecond</property>
-        <child type="header-suffix">
-          <object class="GtkSpinButton" id="auto-collapse-millisecond-spin-button">
-            <property name="valign">center</property>
-            <property name="digits">0</property>
-            <property name="climb_rate">10</property>
-            <property name="snap_to_ticks">true</property>
-            <property name="adjustment">
-              <object class="GtkAdjustment">
-                <property name="step_increment">100</property>
-                <property name="lower">0</property>
-                <property name="upper">10000</property>
-                <property name="page_size">0</property>
-              </object>
-            </property>
-          </object>
-        </child>
-      </object>
-    </child>
-    <child>
-      <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Auto Collapse</property>
-        <child type="header-suffix">
-          <object class="GtkSwitch" id="auto-collapse-switch">
-            <property name="valign">center</property>
-          </object>
-        </child>
       </object>
     </child>
   </template>

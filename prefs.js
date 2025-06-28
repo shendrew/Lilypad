@@ -1,6 +1,7 @@
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import PrefsUI from "./src/prefsUI.js";
+import OrderPage from "./src/orderPage.js";
+import DisplayPage from './src/behaviorPage.js';
 
 export default class LilypadPreferences extends ExtensionPreferences {
     constructor(metadata) {
@@ -10,11 +11,18 @@ export default class LilypadPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window.set_default_size(750, 900);
         
-        let page = new PrefsUI({
+        let orderPage = new OrderPage({
             title: _('General'),
             icon_name: 'applications-other-symbolic',
             Settings: this.getSettings(),
         });
-        window.add(page);
+        window.add(orderPage);
+        
+        let behaviorPage = new DisplayPage({
+            title: _('Display'),
+            icon_name: 'applications-other-symbolic',
+            Settings: this.getSettings(),
+        });
+        window.add(behaviorPage);
     }
 }
