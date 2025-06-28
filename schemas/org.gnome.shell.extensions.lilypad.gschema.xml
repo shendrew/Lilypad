@@ -5,7 +5,7 @@
     <schema id="org.gnome.shell.extensions.lilypad" path="/org/gnome/shell/extensions/lilypad/">
 
         <key type="as" name="rightbox-order">
-            <default>['lilypad']</default>
+            <default>[]</default>
 
             <summary>Order of icons in rightbox</summary>
         </key>
@@ -34,6 +34,10 @@
 
         <key name="auto-collapse-millisecond" type="i">
             <default>1000</default>
+        </key>
+
+        <key name="display-behavior" type="s">
+            <default>'Never'</default>
         </key>
 
     </schema>

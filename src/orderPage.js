@@ -24,15 +24,15 @@ export default class OrderPage extends Adw.PreferencesPage {
         let {Settings, ...args} = params;
         super._init(args);
 
-
         this._rightBoxList = this._rightbox_order;
         this._lilypadList  = this._lilypad_order;
         this._ignoredList = this._ignored_order
 
-        this._initDragMenu();
-        this._initClearButton();
+        this._initDragMenu("rightbox-order", this._rightBoxList);
+        this._initDragMenu("lilypad-order", this._lilypadList);
+        this._initDragMenu("ignored-order", this._ignoredList);
+        this._initClearButton("rightbox-order", "lilypad-order", "ignored-order");
     }
-
 
     /*
      * based on Workbench v46.1 Drag and Drop template
@@ -40,110 +40,106 @@ export default class OrderPage extends Adw.PreferencesPage {
      */
     _addRow(dragBox, rowName, index) {
         let row = new Adw.ActionRow({ title: rowName, selectable: false});
-        if (rowName) {
-        row.add_prefix(
-            new Gtk.Image({
-            icon_name: "list-drag-handle-symbolic",
-            css_classes: ["dim-label"],
-            }),
-        );
-
-        let dragX;
-        let dragY;
-
         const dropController = new Gtk.DropControllerMotion();
-        const dragSource = new Gtk.DragSource({
-            actions: Gdk.DragAction.MOVE,
-        });
-
-        row.add_controller(dragSource);
         row.add_controller(dropController);
 
-        // Drag handling
-        dragSource.connect("prepare", (_source, x, y) => {
-            dragX = x;
-            dragY = y;
-
-            const value = new GObject.Value();
-            value.init(Gtk.ListBoxRow);
-            value.set_object(row);
-
-            return Gdk.ContentProvider.new_for_value(value);
-        });
-
-        dragSource.connect("drag-begin", (_source, drag) => {
-            const dragWidget = new Gtk.ListBox();
-
-            dragWidget.set_size_request(row.get_width(), row.get_height());
-            dragWidget.add_css_class("boxed-list");
-
-            const dragRow = new Adw.ActionRow({ title: row.title });
-            dragRow.add_prefix(
+        if (rowName) {
+            // drag controller
+            row.add_prefix(
                 new Gtk.Image({
-                    icon_name: "list-drag-handle-symbolic",
-                    css_classes: ["dim-label"],
+                icon_name: "list-drag-handle-symbolic",
+                css_classes: ["dim-label"],
                 }),
             );
 
-            dragWidget.append(dragRow);
-            dragWidget.drag_highlight_row(dragRow);
+            let dragX;
+            let dragY;
 
-            const icon = Gtk.DragIcon.get_for_drag(drag);
-            icon.child = dragWidget;
+            const dragSource = new Gtk.DragSource({
+                actions: Gdk.DragAction.MOVE,
+            });
 
-            drag.set_hotspot(dragX, dragY);
-        });
+            row.add_controller(dragSource);
+
+            // Drag handling
+            dragSource.connect("prepare", (_source, x, y) => {
+                dragX = x;
+                dragY = y;
+
+                const value = new GObject.Value();
+                value.init(Gtk.ListBoxRow);
+                value.set_object(row);
+
+                return Gdk.ContentProvider.new_for_value(value);
+            });
+
+            dragSource.connect("drag-begin", (_source, drag) => {
+                const dragWidget = new Gtk.ListBox();
+
+                dragWidget.set_size_request(row.get_width(), row.get_height());
+                dragWidget.add_css_class("boxed-list");
+
+                const dragRow = new Adw.ActionRow({ title: row.title });
+                dragRow.add_prefix(
+                    new Gtk.Image({
+                        icon_name: "list-drag-handle-symbolic",
+                        css_classes: ["dim-label"],
+                    }),
+                );
+
+                dragWidget.append(dragRow);
+                dragWidget.drag_highlight_row(dragRow);
+
+                const icon = Gtk.DragIcon.get_for_drag(drag);
+                icon.child = dragWidget;
+
+                drag.set_hotspot(dragX, dragY);
+            });
+        }
 
         // Update row visuals during drag
         dropController.connect("enter", () => dragBox.drag_highlight_row(row) );
         dropController.connect("leave", () => dragBox.drag_unhighlight_row() );
-    }
         dragBox.insert(row, index);
     }
 
-    _initDragMenu() {
-        const rightBoxOrder = this._settings.get_strv("rightbox-order");
-        const lilypadOrder = this._settings.get_strv("lilypad-order");
-        const ignoredOrder = this._settings.get_strv("ignored-order");
-
-        for (const row of this._lilypadList) {
-            // setup highlighting for lilypad group placeholder
-            const dropController = new Gtk.DropControllerMotion();
-            row.add_controller(dropController);
-
-            dropController.connect("enter", () => this._lilypadList.drag_highlight_row(row) );
-            dropController.connect("leave", () => this._lilypadList.drag_unhighlight_row() );
-        }
-
-        const rightBoxTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
-        const lilypadTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
-        const ignoredTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
-
-        this._rightBoxList.add_controller(rightBoxTarget);
-        this._lilypadList.add_controller(lilypadTarget);
-        this._ignoredList.add_controller(ignoredTarget);
+    _initDragMenu(keyname, listbox) {
+        const orderSetting = this._settings.get_strv(keyname);
+        const boxTarget = Gtk.DropTarget.new(Gtk.ListBoxRow, Gdk.DragAction.MOVE);
+        listbox.add_controller(boxTarget);
 
         // add rows to drag boxes
-        for (const iconName of rightBoxOrder) {
-            this._addRow(this._rightBoxList, iconName, -1);
+        for (const iconName of orderSetting)
+            this._addRow(listbox, iconName, -1);
+        if (!orderSetting.length)
+            this._addRow(listbox, null, -1);
+
+        boxTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, listbox));
+    }
+
+    _removeRow(oldRow, listbox) {
+        for (const row of listbox) {
+            if (row === oldRow) {
+                listbox.remove(oldRow);
+                return;
+            }
         }
-        let lilypadIndex = 0;
-        for (const iconName of lilypadOrder) {
-            this._addRow(this._lilypadList, iconName, lilypadIndex);
-            lilypadIndex++;
+    }
+
+    _storeOrder(listbox, orderSetting) {
+        let order = [];
+        for (const row of listbox) {
+            if (row.title == "")
+                listbox.remove(row);
+            else
+                order.push(row.title);
         }
 
-        for (const iconName of ignoredOrder) {
-            this._addRow(this._ignoredList, iconName, -1);
-        }
+        // add blank row if empty
+        if (!order.length)
+            this._addRow(listbox, null, -1);
 
-        if (!ignoredOrder.length) {
-            this._addRow(this._ignoredList, null, -1);
-        }
-
-        rightBoxTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._rightBoxList));
-        lilypadTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._lilypadList));
-        ignoredTarget.connect("drop", (target, value, x, y) => this._onTargetDropped(target, value, x, y, this._ignoredList));
+        this._settings.set_strv(orderSetting, order);
     }
 
     _onTargetDropped(_drop, value, _x, y, listbox) {
@@ -163,65 +159,18 @@ export default class OrderPage extends Adw.PreferencesPage {
             return false;
         }
 
-
-
-        // remove row
-        for (const row of this._lilypadList) {
-            if (row === value) {
-                if (targetRow.title === "-- lilypad button --") return false;
-
-                this._lilypadList.remove(value);
-                break;
-            }
-        }
-
-        for (const row of this._rightBoxList) {
-            if (row === value) {
-                this._rightBoxList.remove(value);
-                break;
-            }
-        }
-
-        for (const row of this._ignoredList) {
-            if (row === value) {
-                this._ignoredList.remove(value);
-                break;
-            }
-        }
-
+        // find and remove row
+        this._removeRow(value, this._rightBoxList);
+        this._removeRow(value, this._lilypadList);
+        this._removeRow(value, this._ignoredList);
 
         // insert row
         listbox.insert(value, targetIndex);
 
         // store order
-        let rightBoxOrder = [];
-        for (const row of this._rightBoxList) {
-            rightBoxOrder.push(row.title);
-        }
-
-        let lilypadOrder = [];
-        for (const row of this._lilypadList) {
-            if (row.title !== "-- lilypad button --") {
-                lilypadOrder.push(row.title);
-            }
-        }
-
-        let ignoredOrder = [];
-        for (const row of this._ignoredList) {
-            if (row.title == null) {
-                this._ignoredList.remove(row);
-            } else {
-                ignoredOrder.push(row.title);
-            }
-        }
-
-        if (!ignoredOrder.length) {
-            this._addRow(this._ignoredList, null, -1);
-        }
-
-        this._settings.set_strv("lilypad-order", lilypadOrder);
-        this._settings.set_strv("rightbox-order", rightBoxOrder);
-        this._settings.set_strv("ignored-order", ignoredOrder);
+        this._storeOrder(this._rightBoxList, "rightbox-order");
+        this._storeOrder(this._lilypadList, "lilypad-order");
+        this._storeOrder(this._ignoredList, "ignored-order");
 
         // reorder indicators to reflect settings
         this._emitReorder();
@@ -229,7 +178,7 @@ export default class OrderPage extends Adw.PreferencesPage {
         return true;
     }
 
-    _initClearButton() {
+    _initClearButton(...keynames) {
         this._clear_button.connect("clicked", () => {
             const parentWindow = this.get_ancestor(Gtk.Window);
 
@@ -244,9 +193,9 @@ export default class OrderPage extends Adw.PreferencesPage {
 
             dialog.connect('response', (dialog, response) => {
                 if (response === Gtk.ResponseType.YES) {
-                    this._settings.set_strv('lilypad-order', []);
-                    this._settings.set_strv('rightbox-order', []);
-                    this._settings.set_strv('ignored-order', []);
+                    for (const keyname of keynames) {
+                        this._settings.reset(keyname);
+                    }
                     this._emitReorder();
 
                     // close parent window if YES
