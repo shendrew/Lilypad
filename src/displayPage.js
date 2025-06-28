@@ -1,7 +1,6 @@
 import Gio from 'gi://Gio';
 import Adw from "gi://Adw";
 import GObject from "gi://GObject";
-import Gtk from "gi://Gtk";
 import GLib from "gi://GLib";
 
 

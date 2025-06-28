@@ -1,7 +1,7 @@
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import OrderPage from "./src/orderPage.js";
-import DisplayPage from './src/behaviorPage.js';
+import DisplayPage from './src/displayPage.js';
 
 export default class LilypadPreferences extends ExtensionPreferences {
     constructor(metadata) {
