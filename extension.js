@@ -137,6 +137,9 @@ export default class Lilypad extends Extension {
             switch (event.get_button()) {
                 // do not show menu on left click
                 case Clutter.BUTTON_PRIMARY:
+                    if (!this._updateIndicatorVisibility())     // indicator is hidden
+                        break;
+ 
                     this._toggleIcons();
                     this._toggleMenu();
                     break;
@@ -151,6 +154,9 @@ export default class Lilypad extends Extension {
             // only handle initial tap
             switch (event.type()) {
                 case Clutter.EventType.TOUCH_BEGIN:
+                    if (!this._updateIndicatorVisibility())     // indicator is hidden
+                        break;
+
                     this._toggleIcons();
                     this._toggleMenu();
                     break;
@@ -173,8 +179,7 @@ export default class Lilypad extends Extension {
             return false;
         }
 
-        this._updateIndicatorVisibility();
-        let isOpen = this._containerService.toggleIcons();
+       let isOpen = this._containerService.toggleIcons();
         this._setIcon(isOpen);
 
         if (isOpen) {
@@ -201,20 +206,25 @@ export default class Lilypad extends Extension {
 
         if (hide === HideExtension.NEVER.value) {
             this._indicator.show();
+            return true;
         } else if (hide === HideExtension.ALWAYS.value) {
             this._containerService.switchIcons(false);
             this._setIcon(false);
             this._indicator.hide();
+            return true;
         } else if (hide === HideExtension.WHEN_EMPTY.value) {
             const lilypadOrder = this._containerService.getGroupedActors();
             if (lilypadOrder.length > 0) {
                 this._indicator.show();
+                return true;
             } else {
                 this._containerService.switchIcons(false);
                 this._setIcon(false);
                 this._indicator.hide();
+                return false;
             }
         }
+        return false;
     }
 
     _tryStartAutoCollapseTimerIfVisible(times = 0) {
