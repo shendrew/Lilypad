@@ -16,23 +16,15 @@ export default class ContainerService extends GObject.Object {
 
         this._settings          = args["settings"] || null;
         this._extensionPath     = args["path"] || null;
-        this._listener = null;
-
-        this._signalHandler = [];
-        this._signalHandler.push({
-            object: this._settings,
-            id: this._settings.connect("changed::reorder", this.arrange.bind(this))
-        });
-
         this._containerName;
     }
 
-    _addIconVisibilityListeners(listener) {
+    setIconVisibilityListeners(listener) {
         this._iconVisibilityListener = listener;
     }
 
     _setIconsVisibility(show, destroy = false) {
-        const orderActors = this.getOrderActors()
+        const orderActors = this.getGroupedActors()
         orderActors.forEach(actor => {
             if (show) {
                 actor.container.show();
@@ -43,15 +35,13 @@ export default class ContainerService extends GObject.Object {
         });
     }
 
-    getOrderActors() {
+    getGroupedActors() {
         let lilypadOrder = this._settings.get_strv('lilypad-order');
         const orderActors = []
         const roleOrder = this.getOrder();
         for (let role of roleOrder) {
             const roleName = getRoleName(role);
-            // console.log(roleName);
             if (lilypadOrder.includes(roleName)) {
-                // console.log(Main.panel.statusArea[role]);
                 orderActors.push(Main.panel.statusArea[role]);
             }
         }
@@ -149,7 +139,8 @@ export default class ContainerService extends GObject.Object {
 
     // Get current order of icons in the top bar
     getOrder() {
-        let ignoredOrder = this._settings.get_strv('ignored-order');
+        const ignoredOrder = this._settings.get_strv('ignored-order');
+        const lilypadOrder = this._settings.get_strv('lilypad-order');
         // GET widget role name
         this._containerName = new Map();
         for (const role in Main.panel.statusArea) {
@@ -166,14 +157,13 @@ export default class ContainerService extends GObject.Object {
 
             // skip if actor or container has been removed w/o cleanup
             if (!actor || this._containerName.get(container) === undefined) continue;
-            // console.log("lilypad found:", this._containerName.get(container), container)
             let actorName = getRoleName(this._containerName.get(container));
 
             // conditions to exclude
-            if (!actor.visible) continue;
+            if (actorName !== "lilypad" && !lilypadOrder.includes(actorName) && !actor.visible) continue;
             if (actorName === "quickSettings" ||  ignoredOrder.includes(actorName)) continue;
 
-            if (container && actor.is_visible()) {
+            if (container) {
                 // accessible name could change, so push the raw role first
                 roleOrder.push(this._containerName.get(container));
             }
@@ -184,7 +174,5 @@ export default class ContainerService extends GObject.Object {
 
     destroy() {
         this._setIconsVisibility(true, true);
-
-        this._signalHandler.forEach(signal => signal.object.disconnect(signal.id));
     }
 }

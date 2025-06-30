@@ -20,7 +20,7 @@ export default class LilypadPreferences extends ExtensionPreferences {
         
         let behaviorPage = new DisplayPage({
             title: _('Display'),
-            icon_name: 'applications-other-symbolic',
+            icon_name: 'display-symbolic',
             Settings: this.getSettings(),
         });
         window.add(behaviorPage);

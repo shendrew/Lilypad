@@ -27,7 +27,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import ContainerService from './src/containerService.js';
-
+import { HideExtension } from './src/common/enum.js';
 
 export default class Lilypad extends Extension {
     constructor(metadata) {
@@ -37,10 +37,12 @@ export default class Lilypad extends Extension {
     enable() {
         this._settings = this.getSettings();
 
+        // init reorder service
         this._containerService = new ContainerService({
             settings: this._settings,
             path: this.path,
         });
+        this._containerService.setIconVisibilityListeners(this._onIconVisibilityChange.bind(this));
 
         // create icons
         this._closedIcon = new St.Icon({
@@ -54,26 +56,38 @@ export default class Lilypad extends Extension {
             icon_size: 16,
         });
 
+        // init indicator
         this._indicator = new PanelMenu.Button(0.5, _('Lilypad'), false);
-        this._initIndicator(this._indicator);
+        this._initIndicator();
 
         this._max_collapse_retry_times = 5;
 
         //* modify default addContainer entrypoint
         Panel.Panel.prototype._originalAddToStatusArea = Panel.Panel.prototype.addToStatusArea;
-        const arrange = () => {
+        const rearrange = () => {
             // preserves extension scope
             this._containerService.arrange();
+            this._updateIndicatorVisibility();
         }
         Panel.Panel.prototype.addToStatusArea = function (role, indicator, position, box) {
             this._originalAddToStatusArea(role, indicator, position, box);
-            arrange();
+            rearrange();
         };
 
+        // add signal handler for settings changes 
+        this._signalHandler = [];
+        this._signalHandler.push({
+            object: this._settings,
+            id: this._settings.connect("changed::reorder", rearrange)
+            // AT MOST one signal handler for reorder to avoid race conditions
+        });
+        this._signalHandler.push({
+            object: this._settings,
+            id: this._settings.connect("changed::hide-indicator", this._updateIndicatorVisibility.bind(this))
+        });
+
+        // finalize indicator
         Main.panel.addToStatusArea(this.uuid, this._indicator);
-
-
-        this._containerService._addIconVisibilityListeners(this._onIconVisibilityChange.bind(this));
         console.log("Lilypad extension started...")
     }
 
@@ -87,9 +101,11 @@ export default class Lilypad extends Extension {
     }
 
     disable() {
+        this._signalHandler.forEach(signal => signal.object.disconnect(signal.id));
+        
         Panel.Panel.prototype.addToStatusArea = Panel.Panel.prototype._originalAddToStatusArea;
         Panel.Panel.prototype._originalAddToStatusArea = null;
-
+        
         this._containerService?.destroy();
         this._containerService = null;
 
@@ -157,27 +173,49 @@ export default class Lilypad extends Extension {
             return false;
         }
 
-        let isVisible = this._containerService.toggleIcons();
-        this._setIcon(isVisible);
+        this._updateIndicatorVisibility();
+        let isOpen = this._containerService.toggleIcons();
+        this._setIcon(isOpen);
 
-        if (isVisible) {
+        if (isOpen) {
             this._tryStartAutoCollapseTimerIfVisible();
         }
-        return isVisible;
+        return isOpen;
     }
 
-    _setIcon(visible) {
+    _setIcon(isOpen) {
         // remove existing icon
         if (this._indicator.get_children().length) {
             this._indicator.remove_all_children();
         }
 
-        if (visible) {
+        if (isOpen) {
             this._indicator.add_child(this._openIcon);
         } else {
             this._indicator.add_child(this._closedIcon);
         }
-    };
+    }
+
+    _updateIndicatorVisibility() {
+        const hide = this._settings.get_int("hide-indicator");
+
+        if (hide === HideExtension.NEVER.value) {
+            this._indicator.show();
+        } else if (hide === HideExtension.ALWAYS.value) {
+            this._containerService.switchIcons(false);
+            this._setIcon(false);
+            this._indicator.hide();
+        } else if (hide === HideExtension.WHEN_EMPTY.value) {
+            const lilypadOrder = this._containerService.getGroupedActors();
+            if (lilypadOrder.length > 0) {
+                this._indicator.show();
+            } else {
+                this._containerService.switchIcons(false);
+                this._setIcon(false);
+                this._indicator.hide();
+            }
+        }
+    }
 
     _tryStartAutoCollapseTimerIfVisible(times = 0) {
         let autoCollapse = this._settings.get_boolean('auto-collapse');
@@ -188,7 +226,7 @@ export default class Lilypad extends Extension {
             this._timerId = setTimeout(() => {
                 let detectActors = [];
                 detectActors.push(this._indicator);
-                detectActors.push(...this._containerService.getOrderActors());
+                detectActors.push(...this._containerService.getGroupedActors());
 
                 let collapse = true;
 

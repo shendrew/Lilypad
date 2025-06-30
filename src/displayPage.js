@@ -41,14 +41,9 @@ export default class DisplayPage extends Adw.PreferencesPage {
 
     _initAutoCollapseMillisecondSwitchButton(keyName) {
         this._settings.bind(keyName, this._auto_collapse_millisecond_spin_button, "value", Gio.SettingsBindFlags.DEFAULT);
-    };
+    }
 
     _initAutoCollapseSwitch(keyName) {
         this._settings.bind(keyName, this._auto_collapse_switch, 'active', Gio.SettingsBindFlags.DEFAULT);
-    };
-
-    _emitReorder() {
-        const reorder_state = this._settings.get_boolean("reorder");
-        this._settings.set_boolean("reorder", reorder_state^1);
     }
 }
