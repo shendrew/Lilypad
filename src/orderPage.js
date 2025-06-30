@@ -44,24 +44,43 @@ export default class OrderPage extends Adw.PreferencesPage {
         row.add_controller(dropController);
 
         if (rowName) {
-            // drag controller
+            // drag icon
             row.add_prefix(
                 new Gtk.Image({
-                icon_name: "list-drag-handle-symbolic",
-                css_classes: ["dim-label"],
+                    icon_name: "list-drag-handle-symbolic",
+                    css_classes: ["dim-label"],
                 }),
             );
 
+            // delete button
+            const deleteButton = new Gtk.Button({
+                icon_name: "user-trash-symbolic",
+                css_classes: ["flat"],
+                valign: Gtk.Align.CENTER,
+                tooltip_text: "Delete",
+                focusable: false,
+            });
+            deleteButton.connect("clicked", () => {
+                dragBox.remove(row);
+                if (dragBox === this._rightBoxList)
+                    this._storeOrder(dragBox, "rightbox-order");
+                else if (dragBox === this._lilypadList)
+                    this._storeOrder(dragBox, "lilypad-order");
+                else if (dragBox === this._ignoredList)
+                    this._storeOrder(dragBox, "ignored-order");
+                this._emitReorder();
+            });
+            row.add_suffix(deleteButton);
+
+            // Drag handling
             let dragX;
             let dragY;
 
             const dragSource = new Gtk.DragSource({
                 actions: Gdk.DragAction.MOVE,
             });
-
             row.add_controller(dragSource);
 
-            // Drag handling
             dragSource.connect("prepare", (_source, x, y) => {
                 dragX = x;
                 dragY = y;
