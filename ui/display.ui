@@ -3,6 +3,26 @@
   <requires lib="gtk" version="4.0"/>
   <template class="DisplayUI" parent="AdwPreferencesPage">
     <child>
+      <!-- display behavior -->
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Display</property>
+        
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Hide Lilypad button</property>
+            <property name="subtitle">When to hide the collapsible group button</property>
+            <child type="suffix">
+              <object class="GtkDropDown" id="hide-indicator-dropdown">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <!-- auto collapse -->
       <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">Auto Collapse</property>
         <property name="description" translatable="yes">Collapsible group will automatically close after a delay without interaction.</property>
@@ -18,7 +38,6 @@
           </object>
         </child>
     
-
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Auto Collapse Delay (ms)</property>
@@ -40,10 +59,9 @@
             </child>
           </object>
         </child>
-
       </object>
-    </child>
 
+    </child>
   </template>
   
 </interface>
