@@ -71,6 +71,10 @@ export default class Lilypad extends Extension {
         }
         Panel.Panel.prototype.addToStatusArea = function (role, indicator, position, box) {
             this._originalAddToStatusArea(role, indicator, position, box);
+            let destroyID = indicator.connect("destroy", (emitter) => {
+                rearrange();
+                emitter.disconnect(destroyID);
+            });
             rearrange();
         };
 
