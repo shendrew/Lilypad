@@ -145,28 +145,29 @@ export default class ContainerService extends GObject.Object {
         this._containerName = new Map();
         for (const role in Main.panel.statusArea) {
             // roles are keys for the statusArea
-            let container = Main.panel.statusArea[role].container;
-            this._containerName.set(container, role);
+            let indicator = Main.panel.statusArea[role];
+            if (!indicator || !indicator.container) continue;
+            this._containerName.set(indicator.container, role);
         }
 
         let roleOrder = [];
         let children = Main.panel._rightBox.get_children();
         for (let i = 0; i < children.length; i++) {
             let container = children[i];
+            if (!container || !container.get_first_child()) continue;
+
             let actor = container.get_first_child();
 
             // skip if actor or container has been removed w/o cleanup
-            if (!actor || this._containerName.get(container) === undefined) continue;
+            if (!actor || !this._containerName.get(container)) continue;
             let actorName = getRoleName(this._containerName.get(container));
 
             // conditions to exclude
             if (actorName !== "lilypad" && !lilypadOrder.includes(actorName) && !actor.visible) continue;
             if (actorName === "quickSettings" ||  ignoredOrder.includes(actorName)) continue;
 
-            if (container) {
-                // accessible name could change, so push the raw role first
-                roleOrder.push(this._containerName.get(container));
-            }
+            // accessible name could change, so push the raw role first
+            roleOrder.push(this._containerName.get(container));
         }
 
         return roleOrder;
