@@ -3,9 +3,41 @@
   <requires lib="gtk" version="4.0"/>
   <template class="DisplayUI" parent="AdwPreferencesPage">
     <child>
+      <!-- display icon -->
+      <object class="AdwPreferencesGroup">
+          <property name="title" translatable="yes">Icon</property>
+          
+          <child>
+            <object class="AdwActionRow">
+              <property name="title" translatable="yes">Closed Icon</property>
+              <child type="suffix">
+                <object class="GtkButton" id="select-closed-icon">
+                  <property name="valign">center</property>
+                  <property name="label">Select File</property>
+                </object>
+              </child>
+            </object>
+          </child>
+          
+          <child>
+            <object class="AdwActionRow">
+              <property name="title" translatable="yes">Open Icon</property>
+              <child type="suffix">
+                <object class="GtkButton" id="select-open-icon">
+                  <property name="valign">center</property>
+                  <property name="label">Select File</property>
+                </object>
+              </child>
+            </object>
+          </child>
+
+      </object>
+    </child> <!--display icon -->
+
+    <child>
       <!-- display behavior -->
       <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Display</property>
+        <property name="title" translatable="yes">Display Behavior</property>
         
         <child>
           <object class="AdwActionRow">

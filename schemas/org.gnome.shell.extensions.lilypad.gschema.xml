@@ -38,6 +38,14 @@
             <range min="0" max="2"/>
             <description>follows hide-extension enum</description>
         </key>
+        <key name="closed-icon-path" type="s">
+            <default>''</default>
+            <summary>Path to custom closed icon</summary>
+        </key>
+        <key name="open-icon-path" type="s">
+            <default>''</default>
+            <summary>Path to custom open icon</summary>
+        </key>
 
     </schema>
 </schemalist>
