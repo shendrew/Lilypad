@@ -17,6 +17,6 @@ export function getRoleName(role) {
     const keyWords = roleName.match(regex);
     if (!keyWords) return roleName;
 
-    const display = keyWords.join('_');
+    const display = keyWords ? keyWords.join('_') : roleName;
     return display;
 }
