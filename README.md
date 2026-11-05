@@ -24,7 +24,7 @@ Inspired by [Dozer for macOS](https://github.com/Mortennn/Dozer).
 - [ ] support for more GNOME versions
 
 ## Requirements
-Linux distribution running GNOME versions: 46 - 50:
+Linux distribution running GNOME versions: 46 - 51:
 ```
 Fedora 40, 41, 42, 43
 Ubuntu 24.04, 24.10, 25.04, 25.10
